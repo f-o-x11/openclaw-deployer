@@ -1,4 +1,3 @@
-import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
@@ -6,7 +5,6 @@ import { Bot, Plus, Play, Square, RotateCw, Trash2, FileText } from "lucide-reac
 import { toast } from "sonner";
 
 export default function Dashboard() {
-  const { user } = useAuth();
   const { data: bots, isLoading, refetch } = trpc.bots.list.useQuery();
   
   const deployMutation = trpc.deployment.deploy.useMutation({
@@ -91,7 +89,7 @@ export default function Dashboard() {
             <Bot className="w-8 h-8 text-primary" />
             <span className="text-2xl font-bold">OpenClaw Deployer</span>
           </div>
-          <span className="text-muted-foreground">Welcome, {user?.name}</span>
+          <span className="text-muted-foreground">Welcome</span>
         </div>
       </header>
 

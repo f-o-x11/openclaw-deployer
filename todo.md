@@ -65,3 +65,6 @@
 - [x] Remove login/register pages and routes
 - [x] Make dashboard default landing page
 - [x] Remove auth context and useAuth hook usage
+## Bug Fixes
+- [ ] Fix Railway crash: "Failed to construct URL" from missing VITE_OAUTH_PORTAL_URL env var
+- [ ] Make frontend handle missing OAuth env vars gracefully

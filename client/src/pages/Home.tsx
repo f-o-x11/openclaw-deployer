@@ -1,30 +1,8 @@
-
 import { Button } from "@/components/ui/button";
-import { getLoginUrl } from "@/const";
-import { Link, useLocation } from "wouter";
-import { trpc } from "@/lib/trpc";
+import { Link } from "wouter";
 import { Bot } from "lucide-react";
 
 export default function Home() {
-  const { data: user, isLoading } = trpc.auth.me.useQuery();
-  const [, setLocation] = useLocation();
-
-  // Redirect to login if not authenticated
-  if (!isLoading && !user) {
-    setLocation("/login");
-    return null;
-  }
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    );
-  }
-
-  const isAuthenticated = !!user;
-
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -34,15 +12,9 @@ export default function Home() {
             <Bot className="w-8 h-8 text-primary" />
             <span className="text-2xl font-bold">OpenClaw Deployer</span>
           </div>
-          {isAuthenticated ? (
-            <Link href="/dashboard">
-              <Button className="btn-lobster">Dashboard</Button>
-            </Link>
-          ) : (
-            <Link href="/login">
-              <Button className="btn-lobster">Sign In</Button>
-            </Link>
-          )}
+          <Link href="/dashboard">
+            <Button className="btn-lobster">Dashboard</Button>
+          </Link>
         </div>
       </header>
 
@@ -60,19 +32,11 @@ export default function Home() {
             No technical knowledge required.
           </p>
 
-          {isAuthenticated ? (
-            <Link href="/create">
-              <Button className="btn-lobster">
-                Create Your Bot →
-              </Button>
-            </Link>
-          ) : (
-            <Link href="/login">
-              <Button className="btn-lobster">
-                Get Started →
-              </Button>
-            </Link>
-          )}
+          <Link href="/create">
+            <Button className="btn-lobster">
+              Create Your Bot →
+            </Button>
+          </Link>
         </div>
       </section>
 
