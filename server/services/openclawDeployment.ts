@@ -4,7 +4,7 @@ import path from "path";
 import { updateBot, addProcessLog } from "../db";
 
 const OPENCLAW_BASE_DIR = "/home/ubuntu/openclaw-instances";
-const OPENCLAW_REPO = "https://github.com/openclaw/openclaw.git";
+const OPENCLAW_MASTER_DIR = "/home/ubuntu/openclaw-master";
 
 // Track running processes
 const runningProcesses = new Map<number, ChildProcess>();
@@ -23,86 +23,56 @@ export async function initializeOpenClawEnvironment() {
 }
 
 /**
- * Clone OpenClaw repository for a bot instance
+ * Copy pre-built OpenClaw from master directory to bot instance
  */
-export async function cloneOpenClawRepo(botId: number): Promise<string> {
+export async function copyOpenClawToInstance(botId: number): Promise<string> {
   const instanceDir = path.join(OPENCLAW_BASE_DIR, `bot-${botId}`);
 
   try {
-    // Check if already cloned
+    // Check if already exists
     try {
       await fs.access(instanceDir);
       console.log(`[OpenClaw] Instance directory already exists for bot ${botId}`);
       return instanceDir;
     } catch {
-      // Directory doesn't exist, proceed with clone
+      // Directory doesn't exist, proceed with copy
     }
 
-    console.log(`[OpenClaw] Cloning repository for bot ${botId}...`);
+    console.log(`[OpenClaw] Copying pre-built OpenClaw for bot ${botId}...`);
 
+    // Use cp -r to copy the entire master directory
     await new Promise<void>((resolve, reject) => {
-      const cloneProcess = spawn("git", ["clone", OPENCLAW_REPO, instanceDir]);
+      const copyProcess = spawn("cp", ["-r", OPENCLAW_MASTER_DIR, instanceDir]);
 
-      cloneProcess.stdout.on("data", (data) => {
-        console.log(`[OpenClaw Clone] ${data}`);
-      });
-
-      cloneProcess.stderr.on("data", (data) => {
-        console.log(`[OpenClaw Clone] ${data}`);
-      });
-
-      cloneProcess.on("close", (code) => {
+      copyProcess.on("close", (code) => {
         if (code === 0) {
           resolve();
         } else {
-          reject(new Error(`Git clone failed with code ${code}`));
+          reject(new Error(`Copy failed with code ${code}`));
         }
+      });
+
+      copyProcess.on("error", (error) => {
+        reject(error);
       });
     });
 
-    console.log(`[OpenClaw] Repository cloned successfully for bot ${botId}`);
+    console.log(`[OpenClaw] Pre-built OpenClaw copied successfully for bot ${botId}`);
     return instanceDir;
   } catch (error) {
-    console.error(`[OpenClaw] Failed to clone repository for bot ${botId}:`, error);
+    console.error(`[OpenClaw] Failed to copy OpenClaw for bot ${botId}:`, error);
     throw error;
   }
 }
 
 /**
- * Install OpenClaw dependencies
+ * No need to install dependencies - they're already in the copied directory
+ * This function is kept for backwards compatibility but does nothing
  */
 export async function installOpenClawDependencies(botId: number, instanceDir: string): Promise<void> {
-  try {
-    console.log(`[OpenClaw] Installing dependencies for bot ${botId}...`);
-
-    await new Promise<void>((resolve, reject) => {
-      const installProcess = spawn("npm", ["install"], {
-        cwd: instanceDir,
-        env: { ...process.env, NODE_ENV: "production" },
-      });
-
-      installProcess.stdout.on("data", (data) => {
-        console.log(`[OpenClaw Install] ${data}`);
-      });
-
-      installProcess.stderr.on("data", (data) => {
-        console.log(`[OpenClaw Install] ${data}`);
-      });
-
-      installProcess.on("close", (code) => {
-        if (code === 0) {
-          resolve();
-        } else {
-          reject(new Error(`npm install failed with code ${code}`));
-        }
-      });
-    });
-
-    console.log(`[OpenClaw] Dependencies installed successfully for bot ${botId}`);
-  } catch (error) {
-    console.error(`[OpenClaw] Failed to install dependencies for bot ${botId}:`, error);
-    throw error;
-  }
+  console.log(`[OpenClaw] Skipping npm install for bot ${botId} (using pre-built copy)`);
+  // Dependencies are already installed in the master copy
+  return Promise.resolve();
 }
 
 /**
@@ -184,7 +154,7 @@ export async function startOpenClawProcess(
 
     console.log(`[OpenClaw] Starting gateway for bot ${botId} on port ${port}...`);
 
-    const gatewayProcess = spawn("node", ["gateway.js", "--port", port.toString()], {
+    const gatewayProcess = spawn(process.execPath, ["scripts/run-node.mjs", "gateway"], {
       cwd: instanceDir,
       detached: true,
       stdio: ["ignore", "pipe", "pipe"],
@@ -245,7 +215,7 @@ export async function startOpenClawProcess(
 
     // Update database
     await updateBot(botId, {
-      processId: pid,
+      processId: String(pid),
       port,
       status: "running",
       lastStartedAt: new Date(),

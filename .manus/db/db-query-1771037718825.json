@@ -1,0 +1,18 @@
+{
+  "query": "SELECT id, name, status, configPath, port, processId FROM bots WHERE id = 31;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2UMJNQ8oZhuEPEP.dc188af12769 --database f3YVLqUN5j7hznafAkiG76 --execute SELECT id, name, status, configPath, port, processId FROM bots WHERE id = 31;",
+  "rows": [
+    {
+      "id": "31",
+      "name": "Test Bot v2",
+      "status": "stopped",
+      "configPath": "/home/ubuntu/openclaw-instances/bot-31/openclaw.json",
+      "port": "NULL",
+      "processId": "NULL"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tname\tstatus\tconfigPath\tport\tprocessId\n31\tTest Bot v2\tstopped\t/home/ubuntu/openclaw-instances/bot-31/openclaw.json\tNULL\tNULL\n",
+  "stderr": "",
+  "execution_time_ms": 58
+}

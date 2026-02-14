@@ -1,24 +1,20 @@
 import { z } from "zod";
 import { protectedProcedure, router } from "../_core/trpc";
-import { getBotById, updateBot, getProcessLogs } from "../db";
+import { getBotById } from "../db";
 import { TRPCError } from "@trpc/server";
 import {
-  initializeOpenClawEnvironment,
-  cloneOpenClawRepo,
-  installOpenClawDependencies,
-  generateOpenClawConfig,
-  allocatePort,
-  startOpenClawProcess,
-  stopOpenClawProcess,
-  restartOpenClawProcess,
-  isProcessRunning,
-} from "../services/openclawDeployment";
-
-// Initialize environment on server start
-initializeOpenClawEnvironment().catch(console.error);
+  deployBot,
+  startBot,
+  stopBot,
+  restartBot,
+  deleteBot as deleteDockerBot,
+  getBotLogs,
+} from "../services/dockerDeployment";
 
 export const deploymentRouter = router({
-  // Deploy a bot (clone, install, configure, start)
+  /**
+   * Deploy a bot (create Docker container)
+   */
   deploy: protectedProcedure
     .input(z.object({ botId: z.number() }))
     .mutation(async ({ ctx, input }) => {
@@ -32,41 +28,9 @@ export const deploymentRouter = router({
       }
 
       try {
-        await updateBot(input.botId, { status: "starting" });
-
-        // Clone repository
-        const instanceDir = await cloneOpenClawRepo(input.botId);
-
-        // Install dependencies
-        await installOpenClawDependencies(input.botId, instanceDir);
-
-        // Allocate port
-        const port = allocatePort(input.botId);
-
-        // Generate configuration
-        const configPath = await generateOpenClawConfig(input.botId, instanceDir, {
-          name: bot.name,
-          systemPrompt: bot.systemPrompt || "",
-          port,
-          whatsappEnabled: bot.whatsappEnabled || false,
-          telegramEnabled: bot.telegramEnabled || false,
-          telegramBotToken: bot.telegramBotToken,
-        });
-
-        // Update config path in database
-        await updateBot(input.botId, { configPath });
-
-        // Start process
-        const pid = await startOpenClawProcess(input.botId, instanceDir, port);
-
-        return {
-          success: true,
-          pid,
-          port,
-          message: "Bot deployed successfully",
-        };
+        await deployBot(input.botId);
+        return { success: true, message: "Bot deployed successfully" };
       } catch (error: any) {
-        await updateBot(input.botId, { status: "crashed" });
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: `Deployment failed: ${error.message}`,
@@ -74,7 +38,9 @@ export const deploymentRouter = router({
       }
     }),
 
-  // Start a bot
+  /**
+   * Start a deployed bot
+   */
   start: protectedProcedure
     .input(z.object({ botId: z.number() }))
     .mutation(async ({ ctx, input }) => {
@@ -87,19 +53,8 @@ export const deploymentRouter = router({
         });
       }
 
-      if (!bot.configPath) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Bot not deployed yet. Deploy first.",
-        });
-      }
-
       try {
-        const instanceDir = `/home/ubuntu/openclaw-instances/bot-${input.botId}`;
-        const port = bot.port || allocatePort(input.botId);
-
-        await startOpenClawProcess(input.botId, instanceDir, port);
-
+        await startBot(input.botId);
         return { success: true, message: "Bot started successfully" };
       } catch (error: any) {
         throw new TRPCError({
@@ -109,7 +64,9 @@ export const deploymentRouter = router({
       }
     }),
 
-  // Stop a bot
+  /**
+   * Stop a running bot
+   */
   stop: protectedProcedure
     .input(z.object({ botId: z.number() }))
     .mutation(async ({ ctx, input }) => {
@@ -123,7 +80,7 @@ export const deploymentRouter = router({
       }
 
       try {
-        await stopOpenClawProcess(input.botId);
+        await stopBot(input.botId);
         return { success: true, message: "Bot stopped successfully" };
       } catch (error: any) {
         throw new TRPCError({
@@ -133,7 +90,9 @@ export const deploymentRouter = router({
       }
     }),
 
-  // Restart a bot
+  /**
+   * Restart a bot
+   */
   restart: protectedProcedure
     .input(z.object({ botId: z.number() }))
     .mutation(async ({ ctx, input }) => {
@@ -146,19 +105,8 @@ export const deploymentRouter = router({
         });
       }
 
-      if (!bot.configPath) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Bot not deployed yet",
-        });
-      }
-
       try {
-        const instanceDir = `/home/ubuntu/openclaw-instances/bot-${input.botId}`;
-        const port = bot.port || allocatePort(input.botId);
-
-        await restartOpenClawProcess(input.botId, instanceDir, port);
-
+        await restartBot(input.botId);
         return { success: true, message: "Bot restarted successfully" };
       } catch (error: any) {
         throw new TRPCError({
@@ -168,8 +116,10 @@ export const deploymentRouter = router({
       }
     }),
 
-  // Get bot status
-  getStatus: protectedProcedure
+  /**
+   * Get bot logs
+   */
+  logs: protectedProcedure
     .input(z.object({ botId: z.number() }))
     .query(async ({ ctx, input }) => {
       const bot = await getBotById(input.botId);
@@ -181,42 +131,14 @@ export const deploymentRouter = router({
         });
       }
 
-      const isRunning = isProcessRunning(input.botId);
-
-      return {
-        botId: bot.id,
-        name: bot.name,
-        status: bot.status,
-        isRunning,
-        processId: bot.processId,
-        port: bot.port,
-        configPath: bot.configPath,
-        lastStartedAt: bot.lastStartedAt,
-        lastStoppedAt: bot.lastStoppedAt,
-        crashCount: bot.crashCount,
-      };
-    }),
-
-  // Get bot logs
-  getLogs: protectedProcedure
-    .input(
-      z.object({
-        botId: z.number(),
-        limit: z.number().default(100),
-      })
-    )
-    .query(async ({ ctx, input }) => {
-      const bot = await getBotById(input.botId);
-
-      if (!bot || bot.userId !== ctx.user.id) {
+      try {
+        const logs = await getBotLogs(input.botId);
+        return { logs };
+      } catch (error: any) {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Unauthorized",
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to get logs: ${error.message}`,
         });
       }
-
-      const logs = await getProcessLogs(input.botId, input.limit);
-
-      return logs;
     }),
 });

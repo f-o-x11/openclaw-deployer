@@ -33,7 +33,7 @@ export const bots = mysqlTable("bots", {
   systemPrompt: text("systemPrompt"), // Generated system prompt for OpenClaw
   
   // Process management
-  processId: int("processId"), // PID of running OpenClaw process
+  processId: varchar("processId", { length: 255 }), // Docker container ID
   port: int("port"), // Assigned port for this instance
   status: mysqlEnum("status", ["stopped", "starting", "running", "crashed", "stopping"]).default("stopped").notNull(),
   configPath: varchar("configPath", { length: 512 }), // Path to openclaw.json

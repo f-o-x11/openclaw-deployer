@@ -1,100 +1,52 @@
-# OpenClaw Deployer - Real Deployment System
+# OpenClaw Deployer - Docker + Railway Deployment
 
-## REBUILD: Real OpenClaw Instance Deployment
+## ✅ COMPLETED
+- [x] Lobster.cash minimalist UI design
+- [x] Database schema for bot management
+- [x] 3-step wizard for bot creation
+- [x] Dashboard with bot list
+- [x] Typography fixes to match Lobster.cash
 
-### UI Redesign (Lobster.cash Minimalist Style)
-- [x] Remove all gradient backgrounds - use solid white/light gray
-- [x] Simplify buttons - solid orange, no gradients
-- [x] Remove decorative icons and badges
-- [x] Increase whitespace significantly
-- [x] Use dashed borders (lime green) for cards
-- [x] Simplify navigation - minimal header
-- [x] Clean up wizard - remove visual clutter
-- [x] Simplify dashboard - basic list view
-- [x] Remove chat interface (not needed for deployment tool)
+## 🚀 DOCKER + RAILWAY REBUILD
 
-### Backend - Real OpenClaw Process Management
-- [ ] Install OpenClaw detection/setup script
-- [ ] Child process spawning for OpenClaw gateway instances
-- [ ] Port allocation system (assign unique ports per bot)
-- [ ] Process ID tracking in database
-- [ ] Process health monitoring
-- [ ] Auto-restart on crash
-- [ ] Process cleanup on bot deletion
-- [ ] Log aggregation from OpenClaw stdout/stderr
-- [ ] Configuration file generation (openclaw.json per instance)
-- [ ] Environment variable injection per instance
+### Phase 1: Docker Infrastructure
+- [ ] Create Dockerfile for OpenClaw base image
+- [ ] Create docker-compose.yml template for bot instances
+- [ ] Add Docker volume management for bot data
+- [ ] Configure Docker networking for bot isolation
+- [ ] Set up environment variable injection for bots
 
-### OpenClaw Configuration Generator
-- [ ] Generate valid openclaw.json files
-- [ ] Inject bot personality into system prompts
-- [ ] Configure messaging channels (WhatsApp, Telegram)
-- [ ] Set up gateway port and host
-- [ ] Configure model preferences
-- [ ] Set security policies
-- [ ] Generate channel-specific tokens/credentials
+### Phase 2: Backend Docker Management
+- [ ] Install Docker SDK for Node.js (dockerode)
+- [ ] Replace child_process spawn with Docker container creation
+- [ ] Implement Docker container lifecycle (create/start/stop/remove)
+- [ ] Add container health monitoring
+- [ ] Implement container log streaming
+- [ ] Update database schema for container IDs
+- [ ] Add Docker volume cleanup on bot deletion
 
-### Bot Lifecycle Management
-- [ ] Start bot - spawn OpenClaw process
-- [ ] Stop bot - gracefully terminate process
-- [ ] Restart bot - stop and start sequence
-- [ ] Delete bot - cleanup process and files
-- [ ] View logs - aggregate from process output
-- [ ] Monitor status - check process health
+### Phase 3: Railway Configuration
+- [ ] Create railway.json for service configuration
+- [ ] Add Dockerfile for main web app
+- [ ] Configure PostgreSQL database connection
+- [ ] Set up environment variables for Railway
+- [ ] Add health check endpoints
+- [ ] Configure port binding for Railway
+- [ ] Add Docker socket access configuration
 
-### Database Schema Updates
-- [x] Add processId field to bots table
-- [x] Add port field to bots table
-- [x] Add configPath field to bots table
-- [x] Add logs table for process output
-- [x] Remove chat_messages table (not needed)
-- [x] Update status tracking for process states
-
-### Simplified Wizard (3 Steps)
-- [x] Step 1: Bot basics (name, description)
-- [x] Step 2: Personality configuration
-- [x] Step 3: Channel selection (WhatsApp/Telegram)
-- [x] Remove owner details step (not needed)
-- [x] Simplify form fields
-- [x] Clean validation
-
-### Dashboard Redesign
-- [x] Simple list of bots
-- [x] Status indicators (running/stopped/crashed)
-- [x] Basic actions (start/stop/restart/delete)
-- [x] View logs button
-- [x] Remove analytics/charts
-- [x] Minimal styling
-
-### Testing & Deployment
-- [ ] Test OpenClaw installation detection
-- [ ] Test process spawning
-- [ ] Test port allocation
-- [ ] Test process monitoring
-- [ ] Test auto-restart
-- [ ] Test configuration generation
-- [x] Write vitest tests
+### Phase 4: Testing & Validation
+- [ ] Test Docker container creation locally
+- [ ] Test bot deployment with Docker
+- [ ] Test WhatsApp integration in container
+- [ ] Test Telegram integration in container
+- [ ] Verify Manus AI integration works
+- [ ] Test container restart and recovery
 - [ ] Create deployment checkpoint
-- [ ] Document Node.js ≥22 requirement
 
-
-## NEW REQUIREMENTS - Design Fix & Real Deployment
-
-### Typography Fixes
-- [x] Reduce hero heading size (currently too large)
-- [x] Use normal body text sizes (16-18px)
-- [x] Match Lobster.cash font style (clean sans-serif)
-- [x] Reduce button text size to normal
-- [x] Fix all heading sizes to be more modest
-
-### Real OpenClaw Deployment Implementation
-- [x] Clone OpenClaw GitHub repo (https://github.com/openclaw/openclaw)
-- [x] Install OpenClaw dependencies (npm install)
-- [x] Generate openclaw.json configuration files
-- [x] Spawn OpenClaw gateway process with child_process
-- [x] Track process PID in database
-- [x] Implement start/stop/restart functionality
-- [x] Monitor process health
-- [x] Capture and store process logs
-- [x] Handle process crashes and auto-restart
-- [x] Clean up processes on bot deletion
+### Phase 5: GitHub Export & Documentation
+- [ ] Export project to GitHub repository
+- [ ] Write Railway deployment guide (step-by-step)
+- [ ] Document environment variables needed
+- [ ] Add troubleshooting section
+- [ ] Create deployment screenshots
+- [ ] Provide one-click Railway deploy button
