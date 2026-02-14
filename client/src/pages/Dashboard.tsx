@@ -2,11 +2,86 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
-import { Bot, Plus } from "lucide-react";
+import { Bot, Plus, Play, Square, RotateCw, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { data: bots, isLoading } = trpc.bots.list.useQuery();
+  const { data: bots, isLoading, refetch } = trpc.bots.list.useQuery();
+  
+  const deployMutation = trpc.deployment.deploy.useMutation({
+    onSuccess: () => {
+      toast.success("Bot deployed successfully!");
+      refetch();
+    },
+    onError: (error) => {
+      toast.error("Deployment failed", { description: error.message });
+    },
+  });
+
+  const startMutation = trpc.deployment.start.useMutation({
+    onSuccess: () => {
+      toast.success("Bot started!");
+      refetch();
+    },
+    onError: (error) => {
+      toast.error("Failed to start", { description: error.message });
+    },
+  });
+
+  const stopMutation = trpc.deployment.stop.useMutation({
+    onSuccess: () => {
+      toast.success("Bot stopped!");
+      refetch();
+    },
+    onError: (error) => {
+      toast.error("Failed to stop", { description: error.message });
+    },
+  });
+
+  const restartMutation = trpc.deployment.restart.useMutation({
+    onSuccess: () => {
+      toast.success("Bot restarted!");
+      refetch();
+    },
+    onError: (error) => {
+      toast.error("Failed to restart", { description: error.message });
+    },
+  });
+
+  const deleteMutation = trpc.bots.delete.useMutation({
+    onSuccess: () => {
+      toast.success("Bot deleted!");
+      refetch();
+    },
+    onError: (error) => {
+      toast.error("Failed to delete", { description: error.message });
+    },
+  });
+
+  const handleDeploy = (botId: number) => {
+    if (confirm("Deploy this bot? This will clone OpenClaw and install dependencies.")) {
+      deployMutation.mutate({ botId });
+    }
+  };
+
+  const handleStart = (botId: number) => {
+    startMutation.mutate({ botId });
+  };
+
+  const handleStop = (botId: number) => {
+    stopMutation.mutate({ botId });
+  };
+
+  const handleRestart = (botId: number) => {
+    restartMutation.mutate({ botId });
+  };
+
+  const handleDelete = (botId: number) => {
+    if (confirm("Delete this bot? This action cannot be undone.")) {
+      deleteMutation.mutate({ botId });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -48,13 +123,71 @@ export default function Dashboard() {
             {bots.map((bot) => (
               <div key={bot.id} className="card-clean flex items-center justify-between">
                 <div>
-                  <h3 className="text-2xl font-bold mb-2">{bot.name}</h3>
-                  <p className="text-muted-foreground mb-2">{bot.description}</p>
-                  <span className={`status-${bot.status}`}>{bot.status}</span>
+                  <h3 className="text-xl font-bold mb-1">{bot.name}</h3>
+                  <p className="text-sm text-muted-foreground mb-2">{bot.description}</p>
+                  <div className="flex items-center gap-4 text-sm">
+                    <span className={`status-${bot.status} font-medium`}>
+                      {bot.status}
+                    </span>
+                    {bot.port && (
+                      <span className="text-muted-foreground">Port: {bot.port}</span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline">View</Button>
-                  <Button variant="outline">Logs</Button>
+                  {bot.status === "stopped" && !bot.configPath && (
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => handleDeploy(bot.id)}
+                      disabled={deployMutation.isPending}
+                      className="bg-primary text-primary-foreground"
+                    >
+                      Deploy
+                    </Button>
+                  )}
+                  {bot.status === "stopped" && bot.configPath && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleStart(bot.id)}
+                      disabled={startMutation.isPending}
+                    >
+                      <Play className="w-4 h-4 mr-1" />
+                      Start
+                    </Button>
+                  )}
+                  {bot.status === "running" && (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleStop(bot.id)}
+                        disabled={stopMutation.isPending}
+                      >
+                        <Square className="w-4 h-4 mr-1" />
+                        Stop
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleRestart(bot.id)}
+                        disabled={restartMutation.isPending}
+                      >
+                        <RotateCw className="w-4 h-4 mr-1" />
+                        Restart
+                      </Button>
+                    </>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDelete(bot.id)}
+                    disabled={deleteMutation.isPending}
+                    className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
                 </div>
               </div>
             ))}

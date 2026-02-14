@@ -52,13 +52,13 @@ export default function Home() {
 
           {isAuthenticated ? (
             <Link href="/create">
-              <Button className="btn-lobster text-xl px-12 py-6">
+              <Button className="btn-lobster">
                 Create Your Bot →
               </Button>
             </Link>
           ) : (
             <a href={getLoginUrl()}>
-              <Button className="btn-lobster text-xl px-12 py-6">
+              <Button className="btn-lobster">
                 Get Started →
               </Button>
             </a>

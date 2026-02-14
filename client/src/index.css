@@ -118,9 +118,9 @@
     }
   }
   
-  /* Lobster.cash Button Style - Solid Orange, Large, Rounded */
+  /* Lobster.cash Button Style - Solid Orange, Normal Size, Rounded */
   .btn-lobster {
-    @apply bg-primary text-primary-foreground font-bold px-10 py-5 rounded-2xl text-lg;
+    @apply bg-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl text-base;
     @apply hover:opacity-90 transition-opacity duration-200;
   }
   
@@ -135,30 +135,30 @@
     @apply bg-white border border-border rounded-2xl p-8;
   }
   
-  /* Large Headings */
+  /* Headings - Normal Sizes Like Lobster.cash */
   .heading-hero {
-    @apply text-6xl md:text-7xl lg:text-8xl font-black leading-none;
-  }
-  
-  .heading-xl {
-    @apply text-5xl md:text-6xl font-bold leading-tight;
-  }
-  
-  .heading-lg {
     @apply text-4xl md:text-5xl font-bold leading-tight;
   }
   
-  .heading-md {
-    @apply text-3xl md:text-4xl font-bold;
+  .heading-xl {
+    @apply text-3xl md:text-4xl font-bold leading-tight;
   }
   
-  /* Body Text */
+  .heading-lg {
+    @apply text-2xl md:text-3xl font-bold leading-tight;
+  }
+  
+  .heading-md {
+    @apply text-xl md:text-2xl font-semibold;
+  }
+  
+  /* Body Text - Normal Sizes */
   .text-body-lg {
-    @apply text-xl md:text-2xl text-muted-foreground leading-relaxed;
+    @apply text-lg text-muted-foreground leading-relaxed;
   }
   
   .text-body {
-    @apply text-lg text-muted-foreground leading-relaxed;
+    @apply text-base text-muted-foreground leading-relaxed;
   }
   
   /* Simple Status Text (No Badges) */

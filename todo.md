@@ -76,3 +76,25 @@
 - [x] Write vitest tests
 - [ ] Create deployment checkpoint
 - [ ] Document Node.js ≥22 requirement
+
+
+## NEW REQUIREMENTS - Design Fix & Real Deployment
+
+### Typography Fixes
+- [x] Reduce hero heading size (currently too large)
+- [x] Use normal body text sizes (16-18px)
+- [x] Match Lobster.cash font style (clean sans-serif)
+- [x] Reduce button text size to normal
+- [x] Fix all heading sizes to be more modest
+
+### Real OpenClaw Deployment Implementation
+- [x] Clone OpenClaw GitHub repo (https://github.com/openclaw/openclaw)
+- [x] Install OpenClaw dependencies (npm install)
+- [x] Generate openclaw.json configuration files
+- [x] Spawn OpenClaw gateway process with child_process
+- [x] Track process PID in database
+- [x] Implement start/stop/restart functionality
+- [x] Monitor process health
+- [x] Capture and store process logs
+- [x] Handle process crashes and auto-restart
+- [x] Clean up processes on bot deletion
