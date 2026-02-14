@@ -1,5 +1,20 @@
 {
   "version": "7",
   "dialect": "mysql",
-  "entries": []
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1771029032836,
+      "tag": "0000_flowery_toxin",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1771029315592,
+      "tag": "0001_volatile_zaladane",
+      "breakpoints": true
+    }
+  ]
 }
