@@ -1,19 +1,29 @@
-import { useAuth } from "@/_core/hooks/useAuth";
+
 import { Button } from "@/components/ui/button";
 import { getLoginUrl } from "@/const";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
+import { trpc } from "@/lib/trpc";
 import { Bot } from "lucide-react";
 
 export default function Home() {
-  const { isAuthenticated, loading } = useAuth();
+  const { data: user, isLoading } = trpc.auth.me.useQuery();
+  const [, setLocation] = useLocation();
 
-  if (loading) {
+  // Redirect to login if not authenticated
+  if (!isLoading && !user) {
+    setLocation("/login");
+    return null;
+  }
+
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
       </div>
     );
   }
+
+  const isAuthenticated = !!user;
 
   return (
     <div className="min-h-screen bg-white">
@@ -29,9 +39,9 @@ export default function Home() {
               <Button className="btn-lobster">Dashboard</Button>
             </Link>
           ) : (
-            <a href={getLoginUrl()}>
+            <Link href="/login">
               <Button className="btn-lobster">Sign In</Button>
-            </a>
+            </Link>
           )}
         </div>
       </header>
@@ -57,11 +67,11 @@ export default function Home() {
               </Button>
             </Link>
           ) : (
-            <a href={getLoginUrl()}>
+            <Link href="/login">
               <Button className="btn-lobster">
                 Get Started →
               </Button>
-            </a>
+            </Link>
           )}
         </div>
       </section>

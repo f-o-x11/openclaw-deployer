@@ -8,14 +8,18 @@ import Home from "./pages/Home";
 import BotLogs from "./pages/BotLogs";
 import CreateBot from "./pages/CreateBot";
 import Dashboard from "./pages/Dashboard";
+import Login from "./pages/Login";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path={"/"} component={Home} />
-      <Route path="/create" component={CreateBot} />      <Route path={"/dashboard"} component={Dashboard} />
-      <Route path={"/logs/:id"} component={BotLogs} />      <Route path={"/404"} component={NotFound} />
+      <Route path="/login" component={Login} />
+      <Route path="/create" component={CreateBot} />
+      <Route path={"/dashboard"} component={Dashboard} />
+      <Route path={"/logs/:id"} component={BotLogs} />
+      <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>

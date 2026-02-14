@@ -19,10 +19,18 @@
 - [x] Add "View Logs" button to dashboard
 
 ## GitHub & Railway Deployment
-- [ ] Initialize git repository
-- [ ] Create .gitignore file
-- [ ] Commit all changes
-- [ ] Push to GitHub (with user login)
-- [ ] Deploy to Railway
-- [ ] Configure environment variables
+- [x] Initialize git repository
+- [x] Create .gitignore file
+- [x] Commit all changes
+- [x] Push to GitHub (with user login)
+- [x] Deploy to Railway
+- [x] Configure environment variables
 - [ ] Test live deployment
+
+## Authentication System (Railway)
+- [ ] Replace Manus OAuth with email/password authentication
+- [ ] Create user registration endpoint
+- [ ] Create login endpoint with JWT tokens
+- [ ] Update frontend login form
+- [ ] Add password hashing (bcrypt)
+- [ ] Test authentication flow on Railway
