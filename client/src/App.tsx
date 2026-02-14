@@ -4,18 +4,15 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import Home from "./pages/Home";
 import BotLogs from "./pages/BotLogs";
 import CreateBot from "./pages/CreateBot";
 import Dashboard from "./pages/Dashboard";
-import Login from "./pages/Login";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path="/login" component={Login} />
+      <Route path={"/"} component={Dashboard} />
       <Route path="/create" component={CreateBot} />
       <Route path={"/dashboard"} component={Dashboard} />
       <Route path={"/logs/:id"} component={BotLogs} />

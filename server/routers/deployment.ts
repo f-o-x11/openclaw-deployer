@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { protectedProcedure, router } from "../_core/trpc";
+import { publicProcedure, router } from "../_core/trpc";
 import { getBotById } from "../db";
 import { TRPCError } from "@trpc/server";
 import {
@@ -15,15 +15,15 @@ export const deploymentRouter = router({
   /**
    * Deploy a bot (create Docker container)
    */
-  deploy: protectedProcedure
+  deploy: publicProcedure
     .input(z.object({ botId: z.number() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input }) => {
       const bot = await getBotById(input.botId);
 
-      if (!bot || bot.userId !== ctx.user.id) {
+      if (!bot) {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Unauthorized",
+          code: "NOT_FOUND",
+          message: "Bot not found",
         });
       }
 
@@ -41,15 +41,15 @@ export const deploymentRouter = router({
   /**
    * Start a deployed bot
    */
-  start: protectedProcedure
+  start: publicProcedure
     .input(z.object({ botId: z.number() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input }) => {
       const bot = await getBotById(input.botId);
 
-      if (!bot || bot.userId !== ctx.user.id) {
+      if (!bot) {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Unauthorized",
+          code: "NOT_FOUND",
+          message: "Bot not found",
         });
       }
 
@@ -67,15 +67,15 @@ export const deploymentRouter = router({
   /**
    * Stop a running bot
    */
-  stop: protectedProcedure
+  stop: publicProcedure
     .input(z.object({ botId: z.number() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input }) => {
       const bot = await getBotById(input.botId);
 
-      if (!bot || bot.userId !== ctx.user.id) {
+      if (!bot) {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Unauthorized",
+          code: "NOT_FOUND",
+          message: "Bot not found",
         });
       }
 
@@ -93,15 +93,15 @@ export const deploymentRouter = router({
   /**
    * Restart a bot
    */
-  restart: protectedProcedure
+  restart: publicProcedure
     .input(z.object({ botId: z.number() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input }) => {
       const bot = await getBotById(input.botId);
 
-      if (!bot || bot.userId !== ctx.user.id) {
+      if (!bot) {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Unauthorized",
+          code: "NOT_FOUND",
+          message: "Bot not found",
         });
       }
 
@@ -119,15 +119,15 @@ export const deploymentRouter = router({
   /**
    * Get bot logs
    */
-  logs: protectedProcedure
+  logs: publicProcedure
     .input(z.object({ botId: z.number() }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ input }) => {
       const bot = await getBotById(input.botId);
 
-      if (!bot || bot.userId !== ctx.user.id) {
+      if (!bot) {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Unauthorized",
+          code: "NOT_FOUND",
+          message: "Bot not found",
         });
       }
 

@@ -58,3 +58,10 @@
 - [ ] Show pairing status updates in real-time
 - [ ] Handle QR code refresh when expired
 - [ ] Test end-to-end WhatsApp connection
+
+## Remove Authentication (Priority - Do First)
+- [ ] Remove protectedProcedure from all tRPC routers
+- [ ] Remove auth middleware checks
+- [ ] Remove login/register pages and routes
+- [ ] Make dashboard default landing page
+- [ ] Remove auth context and useAuth hook usage

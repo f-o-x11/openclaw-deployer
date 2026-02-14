@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { protectedProcedure, router } from "../_core/trpc";
+import { publicProcedure, router } from "../_core/trpc";
 import { getBotById } from "../db";
 import { TRPCError } from "@trpc/server";
 import {
@@ -12,15 +12,15 @@ export const whatsappRouter = router({
   /**
    * Initialize WhatsApp client and get QR code
    */
-  initialize: protectedProcedure
+  initialize: publicProcedure
     .input(z.object({ botId: z.number() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input }) => {
       const bot = await getBotById(input.botId);
 
-      if (!bot || bot.userId !== ctx.user.id) {
+      if (!bot) {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Unauthorized",
+          code: "NOT_FOUND",
+          message: "Bot not found",
         });
       }
 
@@ -38,15 +38,15 @@ export const whatsappRouter = router({
   /**
    * Get WhatsApp connection status
    */
-  status: protectedProcedure
+  status: publicProcedure
     .input(z.object({ botId: z.number() }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ input }) => {
       const bot = await getBotById(input.botId);
 
-      if (!bot || bot.userId !== ctx.user.id) {
+      if (!bot) {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Unauthorized",
+          code: "NOT_FOUND",
+          message: "Bot not found",
         });
       }
 
@@ -64,15 +64,15 @@ export const whatsappRouter = router({
   /**
    * Disconnect WhatsApp client
    */
-  disconnect: protectedProcedure
+  disconnect: publicProcedure
     .input(z.object({ botId: z.number() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input }) => {
       const bot = await getBotById(input.botId);
 
-      if (!bot || bot.userId !== ctx.user.id) {
+      if (!bot) {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Unauthorized",
+          code: "NOT_FOUND",
+          message: "Bot not found",
         });
       }
 

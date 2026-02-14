@@ -1,11 +1,11 @@
 import { z } from "zod";
-import { protectedProcedure, router } from "../_core/trpc";
+import { publicProcedure, router } from "../_core/trpc";
 import { createBot, getBotsByUserId, getBotById, updateBot, deleteBot } from "../db";
 import { TRPCError } from "@trpc/server";
 
 export const botsRouter = router({
   // Create a new OpenClaw bot instance
-  create: protectedProcedure
+  create: publicProcedure
     .input(
       z.object({
         name: z.string().min(1).max(255),
@@ -17,7 +17,7 @@ export const botsRouter = router({
         telegramBotToken: z.string().optional(),
       })
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input }) => {
       // Generate system prompt from personality
       const systemPrompt = generateSystemPrompt(
         input.name,
@@ -26,7 +26,7 @@ export const botsRouter = router({
       );
 
       const result = await createBot({
-        userId: ctx.user.id,
+        userId: 1, // Temporary: no auth
         name: input.name,
         description: input.description || null,
         personalityTraits: JSON.stringify(input.personalityTraits || []),
@@ -38,8 +38,8 @@ export const botsRouter = router({
         telegramBotToken: input.telegramBotToken || null,
       });
 
-      // MySQL returns insertId as a bigint or string, convert to number
-      const insertIdRaw = (result as any)[0]?.insertId || (result as any).insertId;
+      // PostgreSQL returns rows array
+      const insertIdRaw = (result as any)[0]?.id || (result as any).id;
       const botId = typeof insertIdRaw === 'bigint' ? Number(insertIdRaw) : Number(insertIdRaw);
       const bot = await getBotById(botId);
       
@@ -53,9 +53,9 @@ export const botsRouter = router({
       return bot;
     }),
 
-  // List all bots for current user
-  list: protectedProcedure.query(async ({ ctx }) => {
-    const bots = await getBotsByUserId(ctx.user.id);
+  // List all bots
+  list: publicProcedure.query(async () => {
+    const bots = await getBotsByUserId(1); // Temporary: no auth
     return bots.map((bot) => ({
       ...bot,
       personalityTraits: bot.personalityTraits ? JSON.parse(bot.personalityTraits) : [],
@@ -63,22 +63,15 @@ export const botsRouter = router({
   }),
 
   // Get single bot by ID
-  getById: protectedProcedure
+  getById: publicProcedure
     .input(z.object({ botId: z.number() }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ input }) => {
       const bot = await getBotById(input.botId);
 
       if (!bot) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Bot not found",
-        });
-      }
-
-      if (bot.userId !== ctx.user.id) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Unauthorized",
         });
       }
 
@@ -89,7 +82,7 @@ export const botsRouter = router({
     }),
 
   // Update bot configuration
-  update: protectedProcedure
+  update: publicProcedure
     .input(
       z.object({
         botId: z.number(),
@@ -99,13 +92,13 @@ export const botsRouter = router({
         behavioralGuidelines: z.string().optional(),
       })
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input }) => {
       const bot = await getBotById(input.botId);
 
-      if (!bot || bot.userId !== ctx.user.id) {
+      if (!bot) {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Unauthorized",
+          code: "NOT_FOUND",
+          message: "Bot not found",
         });
       }
 
@@ -134,15 +127,15 @@ export const botsRouter = router({
     }),
 
   // Delete bot
-  delete: protectedProcedure
+  delete: publicProcedure
     .input(z.object({ botId: z.number() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input }) => {
       const bot = await getBotById(input.botId);
 
-      if (!bot || bot.userId !== ctx.user.id) {
+      if (!bot) {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Unauthorized",
+          code: "NOT_FOUND",
+          message: "Bot not found",
         });
       }
 
