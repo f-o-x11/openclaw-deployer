@@ -9,8 +9,9 @@ RUN apk add --no-cache docker-cli
 # Set working directory
 WORKDIR /app
 
-# Copy package files
+# Copy package files and patches
 COPY package.json pnpm-lock.yaml ./
+COPY patches ./patches
 
 # Install pnpm
 RUN npm install -g pnpm
