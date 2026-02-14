@@ -60,8 +60,8 @@
 - [ ] Test end-to-end WhatsApp connection
 
 ## Remove Authentication (Priority - Do First)
-- [ ] Remove protectedProcedure from all tRPC routers
-- [ ] Remove auth middleware checks
-- [ ] Remove login/register pages and routes
-- [ ] Make dashboard default landing page
-- [ ] Remove auth context and useAuth hook usage
+- [x] Remove protectedProcedure from all tRPC routers
+- [x] Remove auth middleware checks
+- [x] Remove login/register pages and routes
+- [x] Make dashboard default landing page
+- [x] Remove auth context and useAuth hook usage

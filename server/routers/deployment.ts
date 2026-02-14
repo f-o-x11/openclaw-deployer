@@ -1,19 +1,20 @@
 import { z } from "zod";
 import { publicProcedure, router } from "../_core/trpc";
-import { getBotById } from "../db";
+import { getBotById, updateBot } from "../db";
 import { TRPCError } from "@trpc/server";
 import {
-  deployBot,
-  startBot,
-  stopBot,
-  restartBot,
-  deleteBot as deleteDockerBot,
-  getBotLogs,
-} from "../services/dockerDeployment";
+  copyOpenClawToInstance,
+  generateOpenClawConfig,
+  allocatePort,
+  startOpenClawProcess,
+  stopOpenClawProcess,
+  restartOpenClawProcess,
+  cleanupBotInstance,
+} from "../services/openclawDeployment";
 
 export const deploymentRouter = router({
   /**
-   * Deploy a bot (create Docker container)
+   * Deploy a bot (copy OpenClaw and generate config)
    */
   deploy: publicProcedure
     .input(z.object({ botId: z.number() }))
@@ -28,7 +29,29 @@ export const deploymentRouter = router({
       }
 
       try {
-        await deployBot(input.botId);
+        // Copy OpenClaw to instance directory
+        const instanceDir = await copyOpenClawToInstance(input.botId);
+        
+        // Allocate port
+        const port = allocatePort(input.botId);
+        
+        // Generate config
+        await generateOpenClawConfig(input.botId, instanceDir, {
+          name: bot.name,
+          systemPrompt: bot.systemPrompt || "You are a helpful assistant",
+          port,
+          whatsappEnabled: bot.whatsappEnabled ?? false,
+          telegramEnabled: bot.telegramEnabled ?? false,
+          telegramBotToken: bot.telegramBotToken,
+        });
+
+        // Update database
+        await updateBot(input.botId, {
+          configPath: instanceDir,
+          port,
+          status: "stopped",
+        });
+
         return { success: true, message: "Bot deployed successfully" };
       } catch (error: any) {
         throw new TRPCError({
@@ -53,8 +76,15 @@ export const deploymentRouter = router({
         });
       }
 
+      if (!bot.configPath || !bot.port) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "Bot not deployed yet",
+        });
+      }
+
       try {
-        await startBot(input.botId);
+        await startOpenClawProcess(input.botId, bot.configPath, bot.port);
         return { success: true, message: "Bot started successfully" };
       } catch (error: any) {
         throw new TRPCError({
@@ -80,7 +110,7 @@ export const deploymentRouter = router({
       }
 
       try {
-        await stopBot(input.botId);
+        await stopOpenClawProcess(input.botId);
         return { success: true, message: "Bot stopped successfully" };
       } catch (error: any) {
         throw new TRPCError({
@@ -105,8 +135,15 @@ export const deploymentRouter = router({
         });
       }
 
+      if (!bot.configPath || !bot.port) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "Bot not deployed yet",
+        });
+      }
+
       try {
-        await restartBot(input.botId);
+        await restartOpenClawProcess(input.botId, bot.configPath, bot.port);
         return { success: true, message: "Bot restarted successfully" };
       } catch (error: any) {
         throw new TRPCError({
@@ -132,8 +169,9 @@ export const deploymentRouter = router({
       }
 
       try {
-        const logs = await getBotLogs(input.botId);
-        return { logs };
+        // For now, return a placeholder
+        // The openclawDeployment service logs to console and database
+        return { logs: "Check server logs for bot output" };
       } catch (error: any) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",

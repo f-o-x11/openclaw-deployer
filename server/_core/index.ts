@@ -8,6 +8,8 @@ import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
+import { initializeOpenClaw } from "../services/initOpenClaw";
+import { initializeOpenClawEnvironment } from "../services/openclawDeployment";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -29,6 +31,10 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 
 async function startServer() {
+  // Initialize OpenClaw on startup
+  console.log("[Server] Initializing OpenClaw...");
+  await initializeOpenClawEnvironment();
+  initializeOpenClaw().catch(err => console.error("[Server] OpenClaw init failed:", err));
   const app = express();
   const server = createServer(app);
   // Configure cookie parser
