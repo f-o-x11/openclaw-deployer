@@ -95,7 +95,7 @@ export async function createBot(bot: InsertBot) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(bots).values(bot);
+  const result = await db.insert(bots).values(bot).returning();
   return result;
 }
 

@@ -38,19 +38,17 @@ export const botsRouter = router({
         telegramBotToken: input.telegramBotToken || null,
       });
 
-      // PostgreSQL returns rows array
-      const insertIdRaw = (result as any)[0]?.id || (result as any).id;
-      const botId = typeof insertIdRaw === 'bigint' ? Number(insertIdRaw) : Number(insertIdRaw);
-      const bot = await getBotById(botId);
+      // .returning() gives back the full inserted row(s)
+      const insertedBot = result[0];
       
-      if (!bot) {
+      if (!insertedBot) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to create bot",
         });
       }
 
-      return bot;
+      return insertedBot;
     }),
 
   // List all bots
