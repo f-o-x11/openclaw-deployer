@@ -1,21 +1,6 @@
-import { eq, desc } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { 
-  InsertUser, 
-  users, 
-  bots, 
-  Bot, 
-  InsertBot,
-  messagingChannels,
-  MessagingChannel,
-  InsertMessagingChannel,
-  chatMessages,
-  ChatMessage,
-  InsertChatMessage,
-  botAnalytics,
-  BotAnalytics,
-  InsertBotAnalytics
-} from "../drizzle/schema";
+import { InsertUser, users, bots, InsertBot, processLogs, InsertProcessLog } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -32,8 +17,6 @@ export async function getDb() {
   }
   return _db;
 }
-
-// ==================== User Operations ====================
 
 export async function upsertUser(user: InsertUser): Promise<void> {
   if (!user.openId) {
@@ -106,172 +89,60 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// ==================== Bot Operations ====================
-
-export async function createBot(bot: InsertBot): Promise<Bot | undefined> {
+// Bot management queries
+export async function createBot(bot: InsertBot) {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot create bot: database not available");
-    return undefined;
-  }
+  if (!db) throw new Error("Database not available");
 
-  try {
-    const result = await db.insert(bots).values(bot);
-    const insertId = Number(result[0].insertId);
-    
-    // Fetch and return the created bot
-    const createdBot = await db.select().from(bots).where(eq(bots.id, insertId)).limit(1);
-    return createdBot[0];
-  } catch (error) {
-    console.error("[Database] Failed to create bot:", error);
-    throw error;
-  }
+  const result = await db.insert(bots).values(bot);
+  return result;
 }
 
-export async function getBotById(botId: number): Promise<Bot | undefined> {
+export async function getBotsByUserId(userId: number) {
   const db = await getDb();
-  if (!db) return undefined;
+  if (!db) throw new Error("Database not available");
+
+  return await db.select().from(bots).where(eq(bots.userId, userId));
+}
+
+export async function getBotById(botId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
 
   const result = await db.select().from(bots).where(eq(bots.id, botId)).limit(1);
-  return result[0];
+  return result.length > 0 ? result[0] : null;
 }
 
-export async function getBotsByUserId(userId: number): Promise<Bot[]> {
+export async function updateBot(botId: number, updates: Partial<InsertBot>) {
   const db = await getDb();
-  if (!db) return [];
+  if (!db) throw new Error("Database not available");
 
-  return await db.select().from(bots).where(eq(bots.userId, userId)).orderBy(desc(bots.createdAt));
+  await db.update(bots).set(updates).where(eq(bots.id, botId));
 }
 
-export async function updateBot(botId: number, updates: Partial<InsertBot>): Promise<void> {
+export async function deleteBot(botId: number) {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot update bot: database not available");
-    return;
-  }
+  if (!db) throw new Error("Database not available");
 
-  try {
-    await db.update(bots).set(updates).where(eq(bots.id, botId));
-  } catch (error) {
-    console.error("[Database] Failed to update bot:", error);
-    throw error;
-  }
+  await db.delete(bots).where(eq(bots.id, botId));
 }
 
-export async function deleteBot(botId: number): Promise<void> {
+// Process log queries
+export async function addProcessLog(log: InsertProcessLog) {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot delete bot: database not available");
-    return;
-  }
+  if (!db) throw new Error("Database not available");
 
-  try {
-    await db.delete(bots).where(eq(bots.id, botId));
-  } catch (error) {
-    console.error("[Database] Failed to delete bot:", error);
-    throw error;
-  }
+  await db.insert(processLogs).values(log);
 }
 
-// ==================== Messaging Channel Operations ====================
-
-export async function createMessagingChannel(channel: InsertMessagingChannel): Promise<MessagingChannel | undefined> {
+export async function getProcessLogs(botId: number, limit: number = 100) {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot create messaging channel: database not available");
-    return undefined;
-  }
-
-  try {
-    const result = await db.insert(messagingChannels).values(channel);
-    const insertId = Number(result[0].insertId);
-    
-    const createdChannel = await db.select().from(messagingChannels).where(eq(messagingChannels.id, insertId)).limit(1);
-    return createdChannel[0];
-  } catch (error) {
-    console.error("[Database] Failed to create messaging channel:", error);
-    throw error;
-  }
-}
-
-export async function getMessagingChannelsByBotId(botId: number): Promise<MessagingChannel[]> {
-  const db = await getDb();
-  if (!db) return [];
-
-  return await db.select().from(messagingChannels).where(eq(messagingChannels.botId, botId));
-}
-
-export async function updateMessagingChannel(channelId: number, updates: Partial<InsertMessagingChannel>): Promise<void> {
-  const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot update messaging channel: database not available");
-    return;
-  }
-
-  try {
-    await db.update(messagingChannels).set(updates).where(eq(messagingChannels.id, channelId));
-  } catch (error) {
-    console.error("[Database] Failed to update messaging channel:", error);
-    throw error;
-  }
-}
-
-// ==================== Chat Message Operations ====================
-
-export async function createChatMessage(message: InsertChatMessage): Promise<ChatMessage | undefined> {
-  const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot create chat message: database not available");
-    return undefined;
-  }
-
-  try {
-    const result = await db.insert(chatMessages).values(message);
-    const insertId = Number(result[0].insertId);
-    
-    const createdMessage = await db.select().from(chatMessages).where(eq(chatMessages.id, insertId)).limit(1);
-    return createdMessage[0];
-  } catch (error) {
-    console.error("[Database] Failed to create chat message:", error);
-    throw error;
-  }
-}
-
-export async function getChatMessagesByBotId(botId: number, limit: number = 100): Promise<ChatMessage[]> {
-  const db = await getDb();
-  if (!db) return [];
+  if (!db) throw new Error("Database not available");
 
   return await db
     .select()
-    .from(chatMessages)
-    .where(eq(chatMessages.botId, botId))
-    .orderBy(desc(chatMessages.createdAt))
+    .from(processLogs)
+    .where(eq(processLogs.botId, botId))
+    .orderBy(processLogs.timestamp)
     .limit(limit);
-}
-
-// ==================== Bot Analytics Operations ====================
-
-export async function upsertBotAnalytics(analytics: InsertBotAnalytics): Promise<void> {
-  const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot upsert bot analytics: database not available");
-    return;
-  }
-
-  try {
-    await db.insert(botAnalytics).values(analytics).onDuplicateKeyUpdate({
-      set: analytics,
-    });
-  } catch (error) {
-    console.error("[Database] Failed to upsert bot analytics:", error);
-    throw error;
-  }
-}
-
-export async function getBotAnalyticsByBotId(botId: number): Promise<BotAnalytics | undefined> {
-  const db = await getDb();
-  if (!db) return undefined;
-
-  const result = await db.select().from(botAnalytics).where(eq(botAnalytics.botId, botId)).limit(1);
-  return result[0];
 }

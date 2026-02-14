@@ -1,100 +1,78 @@
-# OpenClaw Deployer - MVP Todo List
+# OpenClaw Deployer - Real Deployment System
 
-## Database Schema
-- [x] Design and implement bots table (bot configurations, persona, owner details)
-- [x] Design and implement messaging_channels table (WhatsApp/Telegram credentials)
-- [x] Design and implement chat_messages table (conversation history)
-- [x] Design and implement bot_deployments table (deployment status, metadata)
-- [x] Generate and apply database migrations
+## REBUILD: Real OpenClaw Instance Deployment
 
-## Design System & UI Foundation
-- [x] Implement ocean blue color palette in index.css
-- [x] Configure typography with clean sans-serif fonts
-- [x] Create custom button styles with rounded corners
-- [x] Add lime accent colors for highlights
-- [x] Set up light theme with ocean blue primary
+### UI Redesign (Lobster.cash Minimalist Style)
+- [x] Remove all gradient backgrounds - use solid white/light gray
+- [x] Simplify buttons - solid orange, no gradients
+- [x] Remove decorative icons and badges
+- [x] Increase whitespace significantly
+- [x] Use dashed borders (lime green) for cards
+- [x] Simplify navigation - minimal header
+- [x] Clean up wizard - remove visual clutter
+- [x] Simplify dashboard - basic list view
+- [x] Remove chat interface (not needed for deployment tool)
 
-## 3-Step Wizard Interface
-- [x] Create wizard layout component with step indicators
-- [x] Build Step 1: AI Persona Configuration form
-- [x] Build Step 2: Human Owner Details form
-- [x] Build Step 3: Messaging Channel Integration
-- [x] Implement wizard navigation (next/back/finish)
-- [x] Add form validation and error handling
+### Backend - Real OpenClaw Process Management
+- [ ] Install OpenClaw detection/setup script
+- [ ] Child process spawning for OpenClaw gateway instances
+- [ ] Port allocation system (assign unique ports per bot)
+- [ ] Process ID tracking in database
+- [ ] Process health monitoring
+- [ ] Auto-restart on crash
+- [ ] Process cleanup on bot deletion
+- [ ] Log aggregation from OpenClaw stdout/stderr
+- [ ] Configuration file generation (openclaw.json per instance)
+- [ ] Environment variable injection per instance
 
-## AI Persona Configuration
-- [x] Bot name input field
-- [x] Bot description textarea
-- [x] Personality traits multi-select or tags input
-- [x] Behavioral guidelines textarea
-- [x] Form validation for required fields
+### OpenClaw Configuration Generator
+- [ ] Generate valid openclaw.json files
+- [ ] Inject bot personality into system prompts
+- [ ] Configure messaging channels (WhatsApp, Telegram)
+- [ ] Set up gateway port and host
+- [ ] Configure model preferences
+- [ ] Set security policies
+- [ ] Generate channel-specific tokens/credentials
 
-## WhatsApp Integration
-- [ ] Generate WhatsApp QR code for device pairing
-- [ ] Display QR code in UI with instructions
-- [ ] Implement pairing status polling/websocket
-- [ ] Handle successful pairing callback
-- [ ] Store WhatsApp credentials securely
+### Bot Lifecycle Management
+- [ ] Start bot - spawn OpenClaw process
+- [ ] Stop bot - gracefully terminate process
+- [ ] Restart bot - stop and start sequence
+- [ ] Delete bot - cleanup process and files
+- [ ] View logs - aggregate from process output
+- [ ] Monitor status - check process health
 
-## Telegram Integration
-- [ ] Telegram bot token input field
-- [ ] Validate bot token format
-- [ ] Test connection to Telegram API
-- [ ] Display connection status feedback
-- [ ] Store Telegram credentials securely
+### Database Schema Updates
+- [x] Add processId field to bots table
+- [x] Add port field to bots table
+- [x] Add configPath field to bots table
+- [x] Add logs table for process output
+- [x] Remove chat_messages table (not needed)
+- [x] Update status tracking for process states
 
-## Chat Interface
-- [x] Build chat UI component with message bubbles
-- [x] Implement message history display
-- [x] Add real-time message updates
-- [x] Create message input with send button
-- [x] Handle user and bot messages differently
-- [x] Add timestamp display for messages
+### Simplified Wizard (3 Steps)
+- [x] Step 1: Bot basics (name, description)
+- [x] Step 2: Personality configuration
+- [x] Step 3: Channel selection (WhatsApp/Telegram)
+- [x] Remove owner details step (not needed)
+- [x] Simplify form fields
+- [x] Clean validation
 
-## Bot Management Dashboard
-- [x] Create dashboard layout with bot list
-- [x] Display bot cards with status indicators
-- [x] Show basic analytics (message count, uptime)
-- [x] Add bot actions (start/stop/edit/delete)
-- [x] Implement bot status monitoring
-- [x] Create bot detail view
+### Dashboard Redesign
+- [x] Simple list of bots
+- [x] Status indicators (running/stopped/crashed)
+- [x] Basic actions (start/stop/restart/delete)
+- [x] View logs button
+- [x] Remove analytics/charts
+- [x] Minimal styling
 
-## Backend - Bot Deployment
-- [x] Create tRPC procedures for bot CRUD operations
-- [x] Implement bot configuration management
-- [x] Build bot deployment logic
-- [x] Integrate Manus native LLM for responses
-- [x] Handle bot lifecycle (start/stop/restart)
-- [x] Store bot instance metadata
-
-## Backend - Messaging Webhooks
-- [x] Create WhatsApp webhook handler
-- [x] Create Telegram webhook handler
-- [x] Route incoming messages to correct bot
-- [x] Send bot responses back to messaging platforms
-- [x] Handle webhook authentication/verification
-- [x] Implement message queue for reliability
-
-## Backend - Manus AI Integration
-- [x] Configure Manus LLM client
-- [x] Create conversation context management
-- [x] Implement message processing pipeline
-- [x] Add persona-based prompt engineering
-- [x] Handle streaming responses
-- [x] Add error handling and fallbacks
-
-## Cloud Storage Integration
-- [x] Store OpenClaw configuration files in S3
-- [x] Upload and retrieve WhatsApp QR codes
-- [x] Store messaging credentials securely
-- [x] Implement file cleanup for old QR codes
-
-## Testing & Deployment
-- [x] Write vitest tests for critical backend procedures
-- [x] Test wizard flow end-to-end
-- [x] Test WhatsApp integration
-- [x] Test Telegram integration
-- [x] Test chat interface
-- [x] Test bot management dashboard
-- [x] Verify Manus AI integration
+### Testing & Deployment
+- [ ] Test OpenClaw installation detection
+- [ ] Test process spawning
+- [ ] Test port allocation
+- [ ] Test process monitoring
+- [ ] Test auto-restart
+- [ ] Test configuration generation
+- [x] Write vitest tests
 - [ ] Create deployment checkpoint
+- [ ] Document Node.js ≥22 requirement

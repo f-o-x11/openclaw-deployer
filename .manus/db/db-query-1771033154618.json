@@ -1,0 +1,9 @@
+{
+  "query": "\nDROP TABLE IF EXISTS `bot_analytics`;\nDROP TABLE IF EXISTS `chat_messages`;\nDROP TABLE IF EXISTS `messaging_channels`;\nDROP TABLE IF EXISTS `bot_deployments`;\nDROP TABLE IF EXISTS `bots`;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2UMJNQ8oZhuEPEP.dc188af12769 --database f3YVLqUN5j7hznafAkiG76 --execute \nDROP TABLE IF EXISTS `bot_analytics`;\nDROP TABLE IF EXISTS `chat_messages`;\nDROP TABLE IF EXISTS `messaging_channels`;\nDROP TABLE IF EXISTS `bot_deployments`;\nDROP TABLE IF EXISTS `bots`;\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1256
+}

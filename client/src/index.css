@@ -1,6 +1,5 @@
 @import "tailwindcss";
-@import "tw-animate-css";
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 @custom-variant dark (&:is(.dark *));
 
@@ -28,101 +27,55 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
 }
 
 :root {
-  /* Ocean Blue Design System - Lobster.cash inspired */
-  --primary: oklch(0.55 0.18 240); /* Bright ocean blue */
-  --primary-foreground: oklch(0.98 0 0);
-  --sidebar-primary: oklch(0.55 0.18 240);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --chart-1: oklch(0.70 0.15 240);
-  --chart-2: oklch(0.60 0.17 240);
-  --chart-3: oklch(0.50 0.19 240);
-  --chart-4: oklch(0.45 0.20 240);
-  --chart-5: oklch(0.40 0.21 240);
-  --radius: 0.75rem; /* Rounded corners like Lobster.cash */
-  --background: oklch(0.98 0 0); /* Clean white */
-  --foreground: oklch(0.15 0 0); /* Dark text */
-  --card: oklch(0.99 0 0);
+  /* Lobster.cash Minimalist Design - Solid Colors Only */
+  --primary: oklch(0.60 0.20 25); /* Bright Orange #FF5722 */
+  --primary-foreground: oklch(1 0 0); /* White */
+  
+  --secondary: oklch(0.75 0.15 145); /* Lime Green */
+  --secondary-foreground: oklch(0.2 0 0);
+  
+  --background: oklch(1 0 0); /* Pure White */
+  --foreground: oklch(0.15 0 0); /* Near Black */
+  
+  --card: oklch(1 0 0); /* White */
   --card-foreground: oklch(0.15 0 0);
-  --popover: oklch(0.99 0 0);
+  
+  --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.15 0 0);
-  --secondary: oklch(0.95 0 0);
-  --secondary-foreground: oklch(0.15 0 0);
-  --muted: oklch(0.95 0 0);
-  --muted-foreground: oklch(0.45 0 0);
-  --accent: oklch(0.85 0.20 130); /* Lime accent */
+  
+  --muted: oklch(0.96 0 0); /* Very Light Gray */
+  --muted-foreground: oklch(0.5 0 0);
+  
+  --accent: oklch(0.96 0 0);
   --accent-foreground: oklch(0.15 0 0);
+  
   --destructive: oklch(0.55 0.22 25);
-  --destructive-foreground: oklch(0.98 0 0);
+  --destructive-foreground: oklch(1 0 0);
+  
   --border: oklch(0.90 0 0);
-  --input: oklch(0.88 0 0);
-  --ring: oklch(0.55 0.18 240);
-  --sidebar: oklch(0.99 0 0);
-  --sidebar-foreground: oklch(0.15 0 0);
-  --sidebar-accent: oklch(0.95 0 0);
-  --sidebar-accent-foreground: oklch(0.15 0 0);
-  --sidebar-border: oklch(0.90 0 0);
-  --sidebar-ring: oklch(0.55 0.18 240);
-}
-
-.dark {
-  --primary: var(--color-blue-700);
-  --primary-foreground: var(--color-blue-50);
-  --sidebar-primary: var(--color-blue-500);
-  --sidebar-primary-foreground: var(--color-blue-50);
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.85 0.005 65);
-  --card: oklch(0.21 0.006 285.885);
-  --card-foreground: oklch(0.85 0.005 65);
-  --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.85 0.005 65);
-  --secondary: oklch(0.24 0.006 286.033);
-  --secondary-foreground: oklch(0.7 0.005 65);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground:  oklch(0.92 0.005 65);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.488 0.243 264.376);
-  --chart-1: var(--color-blue-300);
-  --chart-2: var(--color-blue-500);
-  --chart-3: var(--color-blue-600);
-  --chart-4: var(--color-blue-700);
-  --chart-5: var(--color-blue-800);
-  --sidebar: oklch(0.21 0.006 285.885);
-  --sidebar-foreground: oklch(0.85 0.005 65);
-  --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-foreground:  oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.488 0.243 264.376);
+  --input: oklch(0.92 0 0);
+  --ring: oklch(0.60 0.20 25);
+  
+  --radius: 1rem;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+  
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
+  
+  h1, h2, h3, h4, h5, h6, p {
+    @apply m-0;
+  }
+  
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
   [type="button"]:not(:disabled),
@@ -137,25 +90,12 @@
 }
 
 @layer components {
-  /**
-   * Custom container utility that centers content and adds responsive padding.
-   *
-   * This overrides Tailwind's default container behavior to:
-   * - Auto-center content (mx-auto)
-   * - Add responsive horizontal padding
-   * - Set max-width for large screens
-   *
-   * Usage: <div className="container">...</div>
-   *
-   * For custom widths, use max-w-* utilities directly:
-   * <div className="max-w-6xl mx-auto px-4">...</div>
-   */
   .container {
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-    padding-left: 1rem; /* 16px - mobile padding */
-    padding-right: 1rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
   }
 
   .flex {
@@ -165,60 +105,87 @@
 
   @media (min-width: 640px) {
     .container {
-      padding-left: 1.5rem; /* 24px - tablet padding */
-      padding-right: 1.5rem;
+      padding-left: 2rem;
+      padding-right: 2rem;
     }
   }
 
   @media (min-width: 1024px) {
     .container {
-      padding-left: 2rem; /* 32px - desktop padding */
-      padding-right: 2rem;
-      max-width: 1280px; /* Standard content width */
+      padding-left: 3rem;
+      padding-right: 3rem;
+      max-width: 1280px;
     }
   }
   
-  /* Ocean Blue Custom Utilities */
-  .btn-ocean {
-    @apply bg-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl hover:opacity-90 transition-all duration-200 shadow-md hover:shadow-lg;
+  /* Lobster.cash Button Style - Solid Orange, Large, Rounded */
+  .btn-lobster {
+    @apply bg-primary text-primary-foreground font-bold px-10 py-5 rounded-2xl text-lg;
+    @apply hover:opacity-90 transition-opacity duration-200;
   }
   
-  .btn-lime {
-    @apply bg-accent text-accent-foreground font-semibold px-6 py-3 rounded-xl hover:opacity-90 transition-all duration-200 shadow-md hover:shadow-lg;
+  /* Dashed Border Card - Signature Lobster.cash Style */
+  .card-dashed {
+    @apply bg-white border-2 border-dashed rounded-2xl p-10;
+    border-color: oklch(0.75 0.15 145); /* Lime green dashed border */
   }
   
-  .card-ocean {
-    @apply bg-card border-2 border-primary/20 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-200;
+  /* Clean White Card */
+  .card-clean {
+    @apply bg-white border border-border rounded-2xl p-8;
   }
   
-  .gradient-ocean {
-    background: linear-gradient(135deg, oklch(0.55 0.18 240) 0%, oklch(0.65 0.15 220) 100%);
+  /* Large Headings */
+  .heading-hero {
+    @apply text-6xl md:text-7xl lg:text-8xl font-black leading-none;
   }
   
-  .text-gradient-ocean {
-    background: linear-gradient(135deg, oklch(0.55 0.18 240) 0%, oklch(0.65 0.15 220) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  .heading-xl {
+    @apply text-5xl md:text-6xl font-bold leading-tight;
   }
   
-  .border-dashed-ocean {
-    border: 2px dashed oklch(0.55 0.18 240);
+  .heading-lg {
+    @apply text-4xl md:text-5xl font-bold leading-tight;
   }
   
-  .status-active {
-    @apply bg-green-100 text-green-700 border border-green-300 rounded-full px-3 py-1 text-sm font-medium;
+  .heading-md {
+    @apply text-3xl md:text-4xl font-bold;
   }
   
-  .status-paused {
-    @apply bg-yellow-100 text-yellow-700 border border-yellow-300 rounded-full px-3 py-1 text-sm font-medium;
+  /* Body Text */
+  .text-body-lg {
+    @apply text-xl md:text-2xl text-muted-foreground leading-relaxed;
   }
   
-  .status-error {
-    @apply bg-red-100 text-red-700 border border-red-300 rounded-full px-3 py-1 text-sm font-medium;
+  .text-body {
+    @apply text-lg text-muted-foreground leading-relaxed;
   }
   
-  .status-draft {
-    @apply bg-muted text-muted-foreground border border-border rounded-full px-3 py-1 text-sm font-medium;
+  /* Simple Status Text (No Badges) */
+  .status-running {
+    @apply text-green-600 font-semibold;
+  }
+  
+  .status-stopped {
+    @apply text-gray-500 font-semibold;
+  }
+  
+  .status-crashed {
+    @apply text-red-600 font-semibold;
+  }
+  
+  .status-deploying {
+    @apply text-orange-600 font-semibold;
+  }
+  
+  /* Section Spacing */
+  .section {
+    @apply py-20 md:py-32;
+  }
+  
+  /* Minimal Input */
+  .input-clean {
+    @apply bg-white border-2 border-border rounded-xl px-4 py-3 text-base;
+    @apply focus:border-primary focus:ring-0 focus:outline-none;
   }
 }

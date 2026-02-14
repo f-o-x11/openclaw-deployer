@@ -1,124 +1,134 @@
 import { z } from "zod";
 import { protectedProcedure, router } from "../_core/trpc";
-import {
-  createBot,
-  getBotById,
-  getBotsByUserId,
-  updateBot,
-  deleteBot,
-  createMessagingChannel,
-  getMessagingChannelsByBotId,
-} from "../db";
+import { createBot, getBotsByUserId, getBotById, updateBot, deleteBot } from "../db";
+import { TRPCError } from "@trpc/server";
 
 export const botsRouter = router({
-  // Create a new bot
+  // Create a new OpenClaw bot instance
   create: protectedProcedure
     .input(
       z.object({
-        name: z.string().min(1),
-        description: z.string().min(1),
-        personalityTraits: z.array(z.string()),
-        behavioralGuidelines: z.string(),
-        ownerName: z.string().min(1),
-        ownerEmail: z.string().email(),
-        ownerPhone: z.string().optional(),
-        whatsappEnabled: z.boolean(),
-        telegramEnabled: z.boolean(),
+        name: z.string().min(1).max(255),
+        description: z.string().optional(),
+        personalityTraits: z.array(z.string()).optional(),
+        behavioralGuidelines: z.string().optional(),
+        whatsappEnabled: z.boolean().default(false),
+        telegramEnabled: z.boolean().default(false),
         telegramBotToken: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Create the bot
-      const bot = await createBot({
+      // Generate system prompt from personality
+      const systemPrompt = generateSystemPrompt(
+        input.name,
+        input.personalityTraits || [],
+        input.behavioralGuidelines
+      );
+
+      const result = await createBot({
         userId: ctx.user.id,
         name: input.name,
-        description: input.description,
-        personalityTraits: input.personalityTraits,
-        behavioralGuidelines: input.behavioralGuidelines,
-        status: "configuring",
-        deploymentMetadata: {
-          ownerName: input.ownerName,
-          ownerEmail: input.ownerEmail,
-          ownerPhone: input.ownerPhone,
-        },
+        description: input.description || null,
+        personalityTraits: JSON.stringify(input.personalityTraits || []),
+        behavioralGuidelines: input.behavioralGuidelines || null,
+        systemPrompt,
+        status: "stopped",
+        whatsappEnabled: input.whatsappEnabled,
+        telegramEnabled: input.telegramEnabled,
+        telegramBotToken: input.telegramBotToken || null,
       });
 
+      // MySQL returns insertId as a bigint or string, convert to number
+      const insertIdRaw = (result as any)[0]?.insertId || (result as any).insertId;
+      const botId = typeof insertIdRaw === 'bigint' ? Number(insertIdRaw) : Number(insertIdRaw);
+      const bot = await getBotById(botId);
+      
       if (!bot) {
-        throw new Error("Failed to create bot");
-      }
-
-      // Create messaging channels
-      if (input.whatsappEnabled) {
-        await createMessagingChannel({
-          botId: bot.id,
-          channelType: "whatsapp",
-          connectionStatus: "pending",
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create bot",
         });
       }
 
-      if (input.telegramEnabled && input.telegramBotToken) {
-        await createMessagingChannel({
-          botId: bot.id,
-          channelType: "telegram",
-          telegramBotToken: input.telegramBotToken,
-          connectionStatus: "connected",
-          telegramConnected: true,
-        });
-      }
-
-      // Update bot status to active
-      await updateBot(bot.id, { status: "active" });
-
-      return { ...bot, status: "active" as const };
+      return bot;
     }),
 
-  // Get all bots for current user
+  // List all bots for current user
   list: protectedProcedure.query(async ({ ctx }) => {
-    return await getBotsByUserId(ctx.user.id);
+    const bots = await getBotsByUserId(ctx.user.id);
+    return bots.map((bot) => ({
+      ...bot,
+      personalityTraits: bot.personalityTraits ? JSON.parse(bot.personalityTraits) : [],
+    }));
   }),
 
-  // Get a single bot by ID
+  // Get single bot by ID
   getById: protectedProcedure
     .input(z.object({ botId: z.number() }))
     .query(async ({ ctx, input }) => {
       const bot = await getBotById(input.botId);
-      
+
       if (!bot) {
-        throw new Error("Bot not found");
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Bot not found",
+        });
       }
 
-      // Check ownership
       if (bot.userId !== ctx.user.id) {
-        throw new Error("Unauthorized");
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Unauthorized",
+        });
       }
 
-      // Get messaging channels
-      const channels = await getMessagingChannelsByBotId(bot.id);
-
-      return { bot, channels };
+      return {
+        ...bot,
+        personalityTraits: bot.personalityTraits ? JSON.parse(bot.personalityTraits) : [],
+      };
     }),
 
-  // Update bot
+  // Update bot configuration
   update: protectedProcedure
     .input(
       z.object({
         botId: z.number(),
-        name: z.string().optional(),
+        name: z.string().min(1).max(255).optional(),
         description: z.string().optional(),
         personalityTraits: z.array(z.string()).optional(),
         behavioralGuidelines: z.string().optional(),
-        status: z.enum(["draft", "configuring", "active", "paused", "error"]).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       const bot = await getBotById(input.botId);
 
       if (!bot || bot.userId !== ctx.user.id) {
-        throw new Error("Unauthorized");
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Unauthorized",
+        });
       }
 
-      const { botId, ...updates } = input;
-      await updateBot(botId, updates);
+      const updates: Record<string, unknown> = {};
+      if (input.name) updates.name = input.name;
+      if (input.description !== undefined) updates.description = input.description;
+      if (input.personalityTraits) {
+        updates.personalityTraits = JSON.stringify(input.personalityTraits);
+      }
+      if (input.behavioralGuidelines !== undefined) {
+        updates.behavioralGuidelines = input.behavioralGuidelines;
+      }
+
+      // Regenerate system prompt if personality changed
+      if (input.personalityTraits || input.behavioralGuidelines) {
+        updates.systemPrompt = generateSystemPrompt(
+          input.name || bot.name,
+          input.personalityTraits || (bot.personalityTraits ? JSON.parse(bot.personalityTraits) : []),
+          input.behavioralGuidelines || bot.behavioralGuidelines || undefined
+        );
+      }
+
+      await updateBot(input.botId, updates);
 
       return { success: true };
     }),
@@ -130,11 +140,38 @@ export const botsRouter = router({
       const bot = await getBotById(input.botId);
 
       if (!bot || bot.userId !== ctx.user.id) {
-        throw new Error("Unauthorized");
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Unauthorized",
+        });
       }
+
+      // TODO: Stop process if running before deleting
 
       await deleteBot(input.botId);
 
       return { success: true };
     }),
 });
+
+// Helper function to generate system prompt from personality
+function generateSystemPrompt(
+  name: string,
+  traits: string[],
+  guidelines?: string
+): string {
+  let prompt = `You are ${name}, an AI assistant with the following personality traits:\n`;
+
+  if (traits.length > 0) {
+    prompt += traits.map((trait) => `- ${trait}`).join("\n");
+    prompt += "\n\n";
+  }
+
+  if (guidelines) {
+    prompt += `Behavioral Guidelines:\n${guidelines}\n\n`;
+  }
+
+  prompt += `Always stay in character and respond according to your personality.`;
+
+  return prompt;
+}
