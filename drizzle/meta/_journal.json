@@ -8,6 +8,13 @@
       "when": 1771047827531,
       "tag": "0000_charming_shotgun",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1771074064670,
+      "tag": "0001_smooth_bug",
+      "breakpoints": true
     }
   ]
 }

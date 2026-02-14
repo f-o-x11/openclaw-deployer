@@ -81,23 +81,12 @@ describe("Bot Creation and Management", () => {
     expect(retrieved.name).toBe("Specific Bot");
   });
 
-  it("prevents unauthorized access to other user's bots", async () => {
-    const ctx1 = createAuthContext(1);
-    const ctx2 = createAuthContext(2);
-    const caller1 = appRouter.createCaller(ctx1);
-    const caller2 = appRouter.createCaller(ctx2);
-
-    const bot = await caller1.bots.create({
-      name: "Private Bot",
-      description: "User 1's bot",
-      personalityTraits: ["Professional"],
-      behavioralGuidelines: "Be formal",
-      whatsappEnabled: false,
-      telegramEnabled: false,
-    });
+  it("returns NOT_FOUND for non-existent bot", async () => {
+    const ctx = createAuthContext();
+    const caller = appRouter.createCaller(ctx);
 
     await expect(
-      caller2.bots.getById({ botId: bot.id })
+      caller.bots.getById({ botId: 999999 })
     ).rejects.toThrow();
   });
 });

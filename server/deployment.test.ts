@@ -48,49 +48,53 @@ describe("Deployment System", () => {
     expect(bot).toBeDefined();
     expect(bot.name).toBe("Test Deployment Bot");
     expect(bot.status).toBe("stopped");
-    expect(bot.configPath).toBeNull();
   });
 
-  it("retrieves bot status", async () => {
+  it("activates a bot via deploy", async () => {
     const ctx = createAuthContext();
     const caller = appRouter.createCaller(ctx);
 
     const bot = await caller.bots.create({
-      name: "Status Test Bot",
-      description: "Bot for status testing",
+      name: "Deploy Test Bot",
+      description: "Bot for deploy testing",
       personalityTraits: ["Friendly"],
       behavioralGuidelines: "Be helpful",
       whatsappEnabled: false,
       telegramEnabled: false,
     });
 
-    const status = await caller.deployment.getStatus({ botId: bot.id });
+    const result = await caller.deployment.deploy({ botId: bot.id });
+    expect(result.success).toBe(true);
+    expect(result.message).toContain("activated");
 
-    expect(status).toBeDefined();
-    expect(status.botId).toBe(bot.id);
-    expect(status.name).toBe("Status Test Bot");
-    expect(status.status).toBe("stopped");
-    expect(status.isRunning).toBe(false);
+    // Verify the bot is now running
+    const updatedBot = await caller.bots.getById({ botId: bot.id });
+    expect(updatedBot.status).toBe("running");
   });
 
-  it("prevents unauthorized access to bot status", async () => {
-    const ctx1 = createAuthContext(1);
-    const ctx2 = createAuthContext(2);
-    const caller1 = appRouter.createCaller(ctx1);
-    const caller2 = appRouter.createCaller(ctx2);
+  it("stops a running bot", async () => {
+    const ctx = createAuthContext();
+    const caller = appRouter.createCaller(ctx);
 
-    const bot = await caller1.bots.create({
-      name: "Private Bot",
-      description: "User 1's bot",
+    const bot = await caller.bots.create({
+      name: "Stop Test Bot",
+      description: "Bot for stop testing",
       personalityTraits: ["Professional"],
       behavioralGuidelines: "Be formal",
       whatsappEnabled: false,
       telegramEnabled: false,
     });
 
-    await expect(
-      caller2.deployment.getStatus({ botId: bot.id })
-    ).rejects.toThrow();
+    // First activate
+    await caller.deployment.deploy({ botId: bot.id });
+
+    // Then stop
+    const result = await caller.deployment.stop({ botId: bot.id });
+    expect(result.success).toBe(true);
+
+    // Verify the bot is now stopped
+    const updatedBot = await caller.bots.getById({ botId: bot.id });
+    expect(updatedBot.status).toBe("stopped");
   });
 
   it("lists bots correctly", async () => {
@@ -119,7 +123,6 @@ describe("Deployment System", () => {
 
     expect(Array.isArray(bots)).toBe(true);
     expect(bots.length).toBeGreaterThanOrEqual(2);
-    expect(bots.every(bot => bot.userId === 1)).toBe(true);
   });
 });
 

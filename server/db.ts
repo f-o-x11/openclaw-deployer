@@ -1,15 +1,17 @@
-import { eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/node-postgres";
-import { InsertUser, users, bots, InsertBot, processLogs, InsertProcessLog } from "../drizzle/schema";
+import { eq, desc, asc } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/mysql2";
+import mysql from "mysql2/promise";
+import { InsertUser, users, bots, InsertBot, processLogs, InsertProcessLog, messages, InsertChatMessage } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
-let _db: ReturnType<typeof drizzle> | null = null;
+let _db: any = null;
 
 // Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      const pool = mysql.createPool(process.env.DATABASE_URL);
+      _db = drizzle(pool);
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
@@ -30,48 +32,49 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   }
 
   try {
-    const values: InsertUser = {
-      openId: user.openId,
-    };
-    const updateSet: Record<string, unknown> = {};
+    // Check if user exists
+    const existing = await db.select().from(users).where(eq(users.openId, user.openId)).limit(1);
 
-    const textFields = ["name", "email", "loginMethod"] as const;
-    type TextField = (typeof textFields)[number];
+    if (existing.length > 0) {
+      // Update existing user
+      const updateSet: Record<string, unknown> = {};
+      const textFields = ["name", "email", "loginMethod"] as const;
+      type TextField = (typeof textFields)[number];
 
-    const assignNullable = (field: TextField) => {
-      const value = user[field];
-      if (value === undefined) return;
-      const normalized = value ?? null;
-      values[field] = normalized;
-      updateSet[field] = normalized;
-    };
+      const assignNullable = (field: TextField) => {
+        const value = user[field];
+        if (value === undefined) return;
+        const normalized = value ?? null;
+        updateSet[field] = normalized;
+      };
 
-    textFields.forEach(assignNullable);
+      textFields.forEach(assignNullable);
 
-    if (user.lastSignedIn !== undefined) {
-      values.lastSignedIn = user.lastSignedIn;
-      updateSet.lastSignedIn = user.lastSignedIn;
+      if (user.lastSignedIn !== undefined) {
+        updateSet.lastSignedIn = user.lastSignedIn;
+      }
+      if (user.role !== undefined) {
+        updateSet.role = user.role;
+      }
+
+      if (Object.keys(updateSet).length === 0) {
+        updateSet.lastSignedIn = new Date();
+      }
+
+      await db.update(users).set(updateSet).where(eq(users.openId, user.openId));
+    } else {
+      // Insert new user
+      const values: InsertUser = {
+        openId: user.openId,
+        name: user.name ?? null,
+        email: user.email ?? null,
+        loginMethod: user.loginMethod ?? null,
+        lastSignedIn: user.lastSignedIn ?? new Date(),
+        role: user.role ?? (user.openId === ENV.ownerOpenId ? 'admin' : 'user'),
+      };
+
+      await db.insert(users).values(values);
     }
-    if (user.role !== undefined) {
-      values.role = user.role;
-      updateSet.role = user.role;
-    } else if (user.openId === ENV.ownerOpenId) {
-      values.role = 'admin';
-      updateSet.role = 'admin';
-    }
-
-    if (!values.lastSignedIn) {
-      values.lastSignedIn = new Date();
-    }
-
-    if (Object.keys(updateSet).length === 0) {
-      updateSet.lastSignedIn = new Date();
-    }
-
-    await db.insert(users).values(values).onConflictDoUpdate({
-      target: users.openId,
-      set: updateSet,
-    });
   } catch (error) {
     console.error("[Database] Failed to upsert user:", error);
     throw error;
@@ -95,8 +98,11 @@ export async function createBot(bot: InsertBot) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const result = await db.insert(bots).values(bot).returning();
-  return result;
+  const result = await db.insert(bots).values(bot);
+  // MySQL returns insertId
+  const insertId = Number(result[0].insertId);
+  const inserted = await db.select().from(bots).where(eq(bots.id, insertId)).limit(1);
+  return inserted;
 }
 
 export async function getBotsByUserId(userId: number) {
@@ -104,6 +110,13 @@ export async function getBotsByUserId(userId: number) {
   if (!db) throw new Error("Database not available");
 
   return await db.select().from(bots).where(eq(bots.userId, userId));
+}
+
+export async function getAllBots() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  return await db.select().from(bots).orderBy(desc(bots.createdAt));
 }
 
 export async function getBotById(botId: number) {
@@ -125,7 +138,42 @@ export async function deleteBot(botId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
+  // Delete associated messages first
+  await db.delete(messages).where(eq(messages.botId, botId));
+  // Delete associated logs
+  await db.delete(processLogs).where(eq(processLogs.botId, botId));
+  // Delete the bot
   await db.delete(bots).where(eq(bots.id, botId));
+}
+
+// Chat message queries
+export async function addChatMessage(msg: InsertChatMessage) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(messages).values(msg);
+  const insertId = Number(result[0].insertId);
+  const inserted = await db.select().from(messages).where(eq(messages.id, insertId)).limit(1);
+  return inserted[0];
+}
+
+export async function getChatMessages(botId: number, limit: number = 50) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  return await db
+    .select()
+    .from(messages)
+    .where(eq(messages.botId, botId))
+    .orderBy(asc(messages.createdAt))
+    .limit(limit);
+}
+
+export async function clearChatMessages(botId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(messages).where(eq(messages.botId, botId));
 }
 
 // Process log queries

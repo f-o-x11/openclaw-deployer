@@ -35,7 +35,7 @@ export default function BotLogs() {
   const filteredLogs = searchTerm
     ? logs
         .split("\n")
-        .filter((line) =>
+        .filter((line: string) =>
           line.toLowerCase().includes(searchTerm.toLowerCase())
         )
         .join("\n")

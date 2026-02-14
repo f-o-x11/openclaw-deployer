@@ -1,20 +1,13 @@
 import { z } from "zod";
 import { publicProcedure, router } from "../_core/trpc";
-import { getBotById, updateBot } from "../db";
+import { getBotById, updateBot, getProcessLogs } from "../db";
 import { TRPCError } from "@trpc/server";
-import {
-  copyOpenClawToInstance,
-  generateOpenClawConfig,
-  allocatePort,
-  startOpenClawProcess,
-  stopOpenClawProcess,
-  restartOpenClawProcess,
-  cleanupBotInstance,
-} from "../services/openclawDeployment";
 
 export const deploymentRouter = router({
   /**
-   * Deploy a bot (copy OpenClaw and generate config)
+   * Activate a bot (set status to running)
+   * In the Manus-hosted version, this uses the built-in LLM
+   * No process spawning needed - the chat router handles LLM calls
    */
   deploy: publicProcedure
     .input(z.object({ botId: z.number() }))
@@ -29,40 +22,23 @@ export const deploymentRouter = router({
       }
 
       try {
-        // Copy OpenClaw to instance directory
-        const instanceDir = await copyOpenClawToInstance(input.botId);
-        
-        // Allocate port
-        const port = allocatePort(input.botId);
-        
-        // Generate config
-        await generateOpenClawConfig(input.botId, instanceDir, {
-          name: bot.name,
-          systemPrompt: bot.systemPrompt || "You are a helpful assistant",
-          port,
-          whatsappEnabled: bot.whatsappEnabled ?? false,
-          telegramEnabled: bot.telegramEnabled ?? false,
-          telegramBotToken: bot.telegramBotToken,
-        });
-
-        // Update database
+        // Simply activate the bot - the chat router handles LLM calls
         await updateBot(input.botId, {
-          configPath: instanceDir,
-          port,
-          status: "stopped",
+          status: "running",
+          lastStartedAt: new Date(),
         });
 
-        return { success: true, message: "Bot deployed successfully" };
+        return { success: true, message: "Bot activated successfully" };
       } catch (error: any) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: `Deployment failed: ${error.message}`,
+          message: `Activation failed: ${error.message}`,
         });
       }
     }),
 
   /**
-   * Start a deployed bot
+   * Start a bot (alias for deploy/activate)
    */
   start: publicProcedure
     .input(z.object({ botId: z.number() }))
@@ -76,22 +52,12 @@ export const deploymentRouter = router({
         });
       }
 
-      if (!bot.configPath || !bot.port) {
-        throw new TRPCError({
-          code: "PRECONDITION_FAILED",
-          message: "Bot not deployed yet",
-        });
-      }
+      await updateBot(input.botId, {
+        status: "running",
+        lastStartedAt: new Date(),
+      });
 
-      try {
-        await startOpenClawProcess(input.botId, bot.configPath, bot.port);
-        return { success: true, message: "Bot started successfully" };
-      } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to start bot: ${error.message}`,
-        });
-      }
+      return { success: true, message: "Bot started" };
     }),
 
   /**
@@ -109,15 +75,12 @@ export const deploymentRouter = router({
         });
       }
 
-      try {
-        await stopOpenClawProcess(input.botId);
-        return { success: true, message: "Bot stopped successfully" };
-      } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to stop bot: ${error.message}`,
-        });
-      }
+      await updateBot(input.botId, {
+        status: "stopped",
+        lastStoppedAt: new Date(),
+      });
+
+      return { success: true, message: "Bot stopped" };
     }),
 
   /**
@@ -135,22 +98,12 @@ export const deploymentRouter = router({
         });
       }
 
-      if (!bot.configPath || !bot.port) {
-        throw new TRPCError({
-          code: "PRECONDITION_FAILED",
-          message: "Bot not deployed yet",
-        });
-      }
+      await updateBot(input.botId, {
+        status: "running",
+        lastStartedAt: new Date(),
+      });
 
-      try {
-        await restartOpenClawProcess(input.botId, bot.configPath, bot.port);
-        return { success: true, message: "Bot restarted successfully" };
-      } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to restart bot: ${error.message}`,
-        });
-      }
+      return { success: true, message: "Bot restarted" };
     }),
 
   /**
@@ -169,14 +122,13 @@ export const deploymentRouter = router({
       }
 
       try {
-        // For now, return a placeholder
-        // The openclawDeployment service logs to console and database
-        return { logs: "Check server logs for bot output" };
+        const logs = await getProcessLogs(input.botId);
+        const logText = logs
+          .map((l: any) => `[${l.timestamp?.toISOString() || ""}] [${l.logType}] ${l.content}`)
+          .join("\n");
+        return { logs: logText || "No logs yet. Activate the bot and start chatting!" };
       } catch (error: any) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to get logs: ${error.message}`,
-        });
+        return { logs: "No logs available." };
       }
     }),
 });

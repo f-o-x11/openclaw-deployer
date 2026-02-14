@@ -1,35 +1,33 @@
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
-import { Bot, Plus, Play, Square, RotateCw, Trash2, FileText } from "lucide-react";
+import {
+  Bot,
+  Plus,
+  Power,
+  PowerOff,
+  Trash2,
+  MessageCircle,
+  Zap,
+} from "lucide-react";
 import { toast } from "sonner";
 
 export default function Dashboard() {
   const { data: bots, isLoading, refetch } = trpc.bots.list.useQuery();
-  
+
   const deployMutation = trpc.deployment.deploy.useMutation({
     onSuccess: () => {
-      toast.success("Bot deployed successfully!");
+      toast.success("Bot activated!");
       refetch();
     },
     onError: (error) => {
-      toast.error("Deployment failed", { description: error.message });
-    },
-  });
-
-  const startMutation = trpc.deployment.start.useMutation({
-    onSuccess: () => {
-      toast.success("Bot started!");
-      refetch();
-    },
-    onError: (error) => {
-      toast.error("Failed to start", { description: error.message });
+      toast.error("Activation failed", { description: error.message });
     },
   });
 
   const stopMutation = trpc.deployment.stop.useMutation({
     onSuccess: () => {
-      toast.success("Bot stopped!");
+      toast.success("Bot deactivated");
       refetch();
     },
     onError: (error) => {
@@ -37,19 +35,9 @@ export default function Dashboard() {
     },
   });
 
-  const restartMutation = trpc.deployment.restart.useMutation({
-    onSuccess: () => {
-      toast.success("Bot restarted!");
-      refetch();
-    },
-    onError: (error) => {
-      toast.error("Failed to restart", { description: error.message });
-    },
-  });
-
   const deleteMutation = trpc.bots.delete.useMutation({
     onSuccess: () => {
-      toast.success("Bot deleted!");
+      toast.success("Bot deleted");
       refetch();
     },
     onError: (error) => {
@@ -57,140 +45,165 @@ export default function Dashboard() {
     },
   });
 
-  const handleDeploy = (botId: number) => {
-    deployMutation.mutate({ botId });
-  };
-
-  const handleStart = (botId: number) => {
-    startMutation.mutate({ botId });
-  };
-
-  const handleStop = (botId: number) => {
-    stopMutation.mutate({ botId });
-  };
-
-  const handleRestart = (botId: number) => {
-    restartMutation.mutate({ botId });
-  };
-
-  const handleDelete = (botId: number) => {
-    deleteMutation.mutate({ botId });
-  };
-
   return (
     <div className="min-h-screen bg-white">
+      {/* Header */}
       <header className="border-b">
         <div className="container py-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Bot className="w-8 h-8 text-primary" />
-            <span className="text-2xl font-bold">OpenClaw Deployer</span>
+            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+              <Zap className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <span className="text-xl font-bold">OpenClaw</span>
+              <span className="text-xs ml-1 text-muted-foreground font-medium">deployer</span>
+            </div>
           </div>
-          <span className="text-muted-foreground">Welcome</span>
-        </div>
-      </header>
-
-      <div className="container section">
-        <div className="flex items-center justify-between mb-12">
-          <h1 className="heading-lg">Your Bots</h1>
           <Link href="/create">
             <Button className="btn-lobster">
-              <Plus className="w-5 h-5 mr-2" />
-              Create Bot
+              <Plus className="w-4 h-4 mr-2" />
+              New Bot
             </Button>
           </Link>
         </div>
+      </header>
+
+      <div className="container py-12">
+        {/* Page Title */}
+        <div className="mb-10">
+          <h1 className="heading-lg mb-2">Your Bots</h1>
+          <p className="text-body">Create, activate, and chat with your AI bots</p>
+        </div>
 
         {isLoading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
+          <div className="text-center py-16">
+            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+            <p className="text-muted-foreground">Loading bots...</p>
           </div>
         ) : !bots || bots.length === 0 ? (
-          <div className="card-dashed text-center py-16">
-            <h2 className="text-2xl font-bold mb-4">No bots yet</h2>
-            <p className="text-body mb-8">Create your first OpenClaw bot to get started</p>
+          <div className="card-dashed text-center py-20">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
+              <Bot className="w-8 h-8 text-primary" />
+            </div>
+            <h2 className="text-2xl font-bold mb-3">No bots yet</h2>
+            <p className="text-body mb-8 max-w-md mx-auto">
+              Create your first OpenClaw bot to get started. It only takes 60 seconds.
+            </p>
             <Link href="/create">
-              <Button className="btn-lobster">Create Your First Bot</Button>
+              <Button className="btn-lobster">
+                <Plus className="w-5 h-5 mr-2" />
+                Create Your First Bot
+              </Button>
             </Link>
           </div>
         ) : (
-          <div className="space-y-4">
-            {bots.map((bot) => (
-              <div key={bot.id} className="card-clean flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-bold mb-1">{bot.name}</h3>
-                  <p className="text-sm text-muted-foreground mb-2">{bot.description}</p>
-                  <div className="flex items-center gap-4 text-sm">
-                    <span className={`status-${bot.status} font-medium`}>
-                      {bot.status}
-                    </span>
-                    {bot.port && (
-                      <span className="text-muted-foreground">Port: {bot.port}</span>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {bots.map((bot: any) => {
+              const isActive = bot.status === "running";
+              return (
+                <div
+                  key={bot.id}
+                  className="card-clean flex flex-col justify-between hover:shadow-md transition-shadow"
+                >
+                  <div className="mb-6">
+                    {/* Bot header */}
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                            isActive
+                              ? "bg-green-100 text-green-600"
+                              : "bg-gray-100 text-gray-400"
+                          }`}
+                        >
+                          <Bot className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-lg leading-tight">{bot.name}</h3>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span
+                              className={`inline-block w-2 h-2 rounded-full ${
+                                isActive ? "bg-green-500" : "bg-gray-400"
+                              }`}
+                            />
+                            <span className="text-xs text-muted-foreground">
+                              {isActive ? "Active" : "Inactive"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-muted-foreground hover:text-destructive h-8 w-8"
+                        onClick={() => deleteMutation.mutate({ botId: bot.id })}
+                        disabled={deleteMutation.isPending}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+
+                    {/* Description */}
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {bot.description || "No description"}
+                    </p>
+
+                    {/* Traits */}
+                    {bot.personalityTraits && bot.personalityTraits.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-3">
+                        {(bot.personalityTraits as string[]).slice(0, 3).map((trait, i) => (
+                          <span
+                            key={i}
+                            className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium"
+                          >
+                            {trait}
+                          </span>
+                        ))}
+                        {(bot.personalityTraits as string[]).length > 3 && (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                            +{(bot.personalityTraits as string[]).length - 3}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-2">
+                    <Link href={`/chat/${bot.id}`} className="flex-1">
+                      <Button
+                        variant={isActive ? "default" : "outline"}
+                        className={`w-full ${isActive ? "btn-lobster" : ""}`}
+                        size="sm"
+                      >
+                        <MessageCircle className="w-4 h-4 mr-1.5" />
+                        Chat
+                      </Button>
+                    </Link>
+                    {isActive ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => stopMutation.mutate({ botId: bot.id })}
+                        disabled={stopMutation.isPending}
+                      >
+                        <PowerOff className="w-4 h-4" />
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => deployMutation.mutate({ botId: bot.id })}
+                        disabled={deployMutation.isPending}
+                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                      >
+                        <Power className="w-4 h-4" />
+                      </Button>
                     )}
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  {bot.status === "stopped" && !bot.configPath && (
-                    <Button
-                      variant="default"
-                      size="sm"
-                      onClick={() => handleDeploy(bot.id)}
-                      disabled={deployMutation.isPending}
-                      className="bg-primary text-primary-foreground"
-                    >
-                      Deploy
-                    </Button>
-                  )}
-                  {bot.status === "stopped" && bot.configPath && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleStart(bot.id)}
-                      disabled={startMutation.isPending}
-                    >
-                      <Play className="w-4 h-4 mr-1" />
-                      Start
-                    </Button>
-                  )}
-                  {bot.status === "running" && (
-                    <>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleStop(bot.id)}
-                        disabled={stopMutation.isPending}
-                      >
-                        <Square className="w-4 h-4 mr-1" />
-                        Stop
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleRestart(bot.id)}
-                        disabled={restartMutation.isPending}
-                      >
-                        <RotateCw className="w-4 h-4 mr-1" />
-                        Restart
-                      </Button>
-                    </>
-                  )}
-                  <Link href={`/logs/${bot.id}`}>
-                    <Button variant="outline" size="sm">
-                      <FileText className="w-4 h-4 mr-1" />
-                      Logs
-                    </Button>
-                  </Link>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(bot.id)}
-                    disabled={deleteMutation.isPending}
-                    className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

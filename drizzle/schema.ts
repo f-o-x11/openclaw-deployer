@@ -1,23 +1,16 @@
-import { integer, pgEnum, pgTable, text, timestamp, varchar, boolean, serial } from "drizzle-orm/pg-core";
-
-/**
- * Enums
- */
-export const roleEnum = pgEnum("role", ["user", "admin"]);
-export const statusEnum = pgEnum("status", ["stopped", "starting", "running", "crashed", "stopping"]);
-export const logTypeEnum = pgEnum("logType", ["stdout", "stderr", "system"]);
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean, serial } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
  */
-export const users = pgTable("users", {
+export const users = mysqlTable("users", {
   id: serial("id").primaryKey(),
   openId: varchar("openId", { length: 64 }).unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }).unique(),
   password: varchar("password", { length: 255 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
-  role: roleEnum("role").default("user").notNull(),
+  role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -29,9 +22,9 @@ export type InsertUser = typeof users.$inferInsert;
 /**
  * OpenClaw bot instances - stores configuration and process metadata
  */
-export const bots = pgTable("bots", {
+export const bots = mysqlTable("bots", {
   id: serial("id").primaryKey(),
-  userId: integer("userId").notNull(), // Owner of the bot
+  userId: int("userId").notNull(), // Owner of the bot
   
   // Bot configuration
   name: varchar("name", { length: 255 }).notNull(),
@@ -40,15 +33,15 @@ export const bots = pgTable("bots", {
   behavioralGuidelines: text("behavioralGuidelines"),
   systemPrompt: text("systemPrompt"), // Generated system prompt for OpenClaw
   
-  // Process management
-  processId: varchar("processId", { length: 255 }), // Docker container ID
-  port: integer("port"), // Assigned port for this instance
-  status: statusEnum("status").default("stopped").notNull(),
-  configPath: varchar("configPath", { length: 512 }), // Path to openclaw.json
+  // Process management (kept for compatibility)
+  processId: varchar("processId", { length: 255 }),
+  port: int("port"),
+  status: mysqlEnum("status", ["stopped", "starting", "running", "crashed", "stopping"]).default("stopped").notNull(),
+  configPath: varchar("configPath", { length: 512 }),
   
   // Messaging channels
   whatsappEnabled: boolean("whatsappEnabled").default(false),
-  whatsappQrCode: text("whatsappQrCode"), // QR code data URL
+  whatsappQrCode: text("whatsappQrCode"),
   whatsappPaired: boolean("whatsappPaired").default(false),
   
   telegramEnabled: boolean("telegramEnabled").default(false),
@@ -58,7 +51,7 @@ export const bots = pgTable("bots", {
   // Metadata
   lastStartedAt: timestamp("lastStartedAt"),
   lastStoppedAt: timestamp("lastStoppedAt"),
-  crashCount: integer("crashCount").default(0),
+  crashCount: int("crashCount").default(0),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
@@ -67,12 +60,26 @@ export type Bot = typeof bots.$inferSelect;
 export type InsertBot = typeof bots.$inferInsert;
 
 /**
+ * Chat messages for bot conversations
+ */
+export const messages = mysqlTable("messages", {
+  id: serial("id").primaryKey(),
+  botId: int("botId").notNull(),
+  role: varchar("role", { length: 20 }).notNull(), // "user", "assistant", "system"
+  content: text("content").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ChatMessage = typeof messages.$inferSelect;
+export type InsertChatMessage = typeof messages.$inferInsert;
+
+/**
  * Process logs from OpenClaw instances
  */
-export const processLogs = pgTable("process_logs", {
+export const processLogs = mysqlTable("process_logs", {
   id: serial("id").primaryKey(),
-  botId: integer("botId").notNull(),
-  logType: logTypeEnum("logType").notNull(),
+  botId: int("botId").notNull(),
+  logType: mysqlEnum("logType", ["stdout", "stderr", "system"]).notNull(),
   content: text("content").notNull(),
   timestamp: timestamp("timestamp").defaultNow().notNull(),
 });

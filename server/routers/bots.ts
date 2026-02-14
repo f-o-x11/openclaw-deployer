@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { publicProcedure, router } from "../_core/trpc";
-import { createBot, getBotsByUserId, getBotById, updateBot, deleteBot } from "../db";
+import { createBot, getAllBots, getBotById, updateBot, deleteBot } from "../db";
 import { TRPCError } from "@trpc/server";
 
 export const botsRouter = router({
@@ -39,7 +39,7 @@ export const botsRouter = router({
       });
 
       // .returning() gives back the full inserted row(s)
-      const insertedBot = result[0];
+      const insertedBot = result[0] as any;
       
       if (!insertedBot) {
         throw new TRPCError({
@@ -51,10 +51,10 @@ export const botsRouter = router({
       return insertedBot;
     }),
 
-  // List all bots
+  // List all bots (no auth filter for now)
   list: publicProcedure.query(async () => {
-    const bots = await getBotsByUserId(1); // Temporary: no auth
-    return bots.map((bot) => ({
+    const allBots = await getAllBots();
+    return allBots.map((bot: any) => ({
       ...bot,
       personalityTraits: bot.personalityTraits ? JSON.parse(bot.personalityTraits) : [],
     }));
@@ -137,8 +137,6 @@ export const botsRouter = router({
         });
       }
 
-      // TODO: Stop process if running before deleting
-
       await deleteBot(input.botId);
 
       return { success: true };
@@ -151,9 +149,10 @@ function generateSystemPrompt(
   traits: string[],
   guidelines?: string
 ): string {
-  let prompt = `You are ${name}, an AI assistant with the following personality traits:\n`;
+  let prompt = `You are ${name}, an AI assistant powered by OpenClaw.\n\n`;
 
   if (traits.length > 0) {
+    prompt += `Your personality traits:\n`;
     prompt += traits.map((trait) => `- ${trait}`).join("\n");
     prompt += "\n\n";
   }
@@ -162,7 +161,7 @@ function generateSystemPrompt(
     prompt += `Behavioral Guidelines:\n${guidelines}\n\n`;
   }
 
-  prompt += `Always stay in character and respond according to your personality.`;
+  prompt += `Always stay in character and respond according to your personality. Be helpful, concise, and engaging.`;
 
   return prompt;
 }
