@@ -34,3 +34,27 @@
 - [ ] Update frontend login form
 - [ ] Add password hashing (bcrypt)
 - [ ] Test authentication flow on Railway
+
+## Railway Database Fix
+- [ ] Replace PostgreSQL with MySQL on Railway
+- [ ] Update DATABASE_URL environment variable
+- [ ] Test database connection and migrations
+
+## OpenClaw GitHub Integration
+- [ ] Update deployment service to clone openclaw.ai GitHub repository
+- [ ] Configure Docker deployment with bot personality settings from database
+- [ ] Map bot configuration to OpenClaw config.yaml format
+- [ ] Test actual OpenClaw deployment with real repository
+
+## In-App Chat Interface
+- [ ] Create chat page component with message UI
+- [ ] Add real-time WebSocket message handling
+- [ ] Connect chat to deployed bot instances via HTTP/WebSocket
+- [ ] Add message history display and persistence
+- [ ] Add chat route and navigation
+
+## WhatsApp QR Code Integration (Complete)
+- [ ] Complete QR code display in wizard Step 3
+- [ ] Show pairing status updates in real-time
+- [ ] Handle QR code refresh when expired
+- [ ] Test end-to-end WhatsApp connection

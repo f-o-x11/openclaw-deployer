@@ -1,18 +1,25 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean } from "drizzle-orm/mysql-core";
+import { integer, pgEnum, pgTable, text, timestamp, varchar, boolean, serial } from "drizzle-orm/pg-core";
+
+/**
+ * Enums
+ */
+export const roleEnum = pgEnum("role", ["user", "admin"]);
+export const statusEnum = pgEnum("status", ["stopped", "starting", "running", "crashed", "stopping"]);
+export const logTypeEnum = pgEnum("logType", ["stdout", "stderr", "system"]);
 
 /**
  * Core user table backing auth flow.
  */
-export const users = mysqlTable("users", {
-  id: int("id").autoincrement().primaryKey(),
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
   openId: varchar("openId", { length: 64 }).unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }).unique(),
   password: varchar("password", { length: 255 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
-  role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  role: roleEnum("role").default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
 
@@ -22,9 +29,9 @@ export type InsertUser = typeof users.$inferInsert;
 /**
  * OpenClaw bot instances - stores configuration and process metadata
  */
-export const bots = mysqlTable("bots", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(), // Owner of the bot
+export const bots = pgTable("bots", {
+  id: serial("id").primaryKey(),
+  userId: integer("userId").notNull(), // Owner of the bot
   
   // Bot configuration
   name: varchar("name", { length: 255 }).notNull(),
@@ -35,8 +42,8 @@ export const bots = mysqlTable("bots", {
   
   // Process management
   processId: varchar("processId", { length: 255 }), // Docker container ID
-  port: int("port"), // Assigned port for this instance
-  status: mysqlEnum("status", ["stopped", "starting", "running", "crashed", "stopping"]).default("stopped").notNull(),
+  port: integer("port"), // Assigned port for this instance
+  status: statusEnum("status").default("stopped").notNull(),
   configPath: varchar("configPath", { length: 512 }), // Path to openclaw.json
   
   // Messaging channels
@@ -51,9 +58,9 @@ export const bots = mysqlTable("bots", {
   // Metadata
   lastStartedAt: timestamp("lastStartedAt"),
   lastStoppedAt: timestamp("lastStoppedAt"),
-  crashCount: int("crashCount").default(0),
+  crashCount: integer("crashCount").default(0),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
 export type Bot = typeof bots.$inferSelect;
@@ -62,10 +69,10 @@ export type InsertBot = typeof bots.$inferInsert;
 /**
  * Process logs from OpenClaw instances
  */
-export const processLogs = mysqlTable("process_logs", {
-  id: int("id").autoincrement().primaryKey(),
-  botId: int("botId").notNull(),
-  logType: mysqlEnum("logType", ["stdout", "stderr", "system"]).notNull(),
+export const processLogs = pgTable("process_logs", {
+  id: serial("id").primaryKey(),
+  botId: integer("botId").notNull(),
+  logType: logTypeEnum("logType").notNull(),
   content: text("content").notNull(),
   timestamp: timestamp("timestamp").defaultNow().notNull(),
 });
