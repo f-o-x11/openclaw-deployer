@@ -58,9 +58,7 @@ export default function Dashboard() {
   });
 
   const handleDeploy = (botId: number) => {
-    if (confirm("Deploy this bot? This will clone OpenClaw and install dependencies.")) {
-      deployMutation.mutate({ botId });
-    }
+    deployMutation.mutate({ botId });
   };
 
   const handleStart = (botId: number) => {
@@ -76,9 +74,7 @@ export default function Dashboard() {
   };
 
   const handleDelete = (botId: number) => {
-    if (confirm("Delete this bot? This action cannot be undone.")) {
-      deleteMutation.mutate({ botId });
-    }
+    deleteMutation.mutate({ botId });
   };
 
   return (
