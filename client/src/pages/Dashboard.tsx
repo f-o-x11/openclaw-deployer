@@ -2,7 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
-import { Bot, Plus, Play, Square, RotateCw, Trash2 } from "lucide-react";
+import { Bot, Plus, Play, Square, RotateCw, Trash2, FileText } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Dashboard() {
@@ -179,6 +179,12 @@ export default function Dashboard() {
                       </Button>
                     </>
                   )}
+                  <Link href={`/logs/${bot.id}`}>
+                    <Button variant="outline" size="sm">
+                      <FileText className="w-4 h-4 mr-1" />
+                      Logs
+                    </Button>
+                  </Link>
                   <Button
                     variant="outline"
                     size="sm"

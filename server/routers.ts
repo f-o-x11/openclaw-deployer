@@ -4,6 +4,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { botsRouter } from "./routers/bots";
 import { deploymentRouter } from "./routers/deployment";
+import { whatsappRouter } from "./routers/whatsapp";
 
 export const appRouter = router({
   system: systemRouter,
@@ -19,6 +20,7 @@ export const appRouter = router({
   }),
   bots: botsRouter,
   deployment: deploymentRouter,
+  whatsapp: whatsappRouter,
 });
 
 export type AppRouter = typeof appRouter;
