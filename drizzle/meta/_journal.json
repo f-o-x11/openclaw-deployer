@@ -15,6 +15,13 @@
       "when": 1771074064670,
       "tag": "0001_smooth_bug",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1771219104515,
+      "tag": "0002_normal_piledriver",
+      "breakpoints": true
     }
   ]
 }
