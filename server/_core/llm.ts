@@ -209,10 +209,17 @@ const normalizeToolChoice = (
   return toolChoice;
 };
 
-const resolveApiUrl = () =>
-  ENV.forgeApiUrl && ENV.forgeApiUrl.trim().length > 0
-    ? `${ENV.forgeApiUrl.replace(/\/$/, "")}/v1/chat/completions`
-    : "https://forge.manus.im/v1/chat/completions";
+const resolveApiUrl = () => {
+  if (ENV.forgeApiUrl && ENV.forgeApiUrl.trim().length > 0) {
+    const base = ENV.forgeApiUrl.replace(/\/$/, "");
+    // If the base URL already ends with /v1, don't add it again
+    if (base.endsWith("/v1")) {
+      return `${base}/chat/completions`;
+    }
+    return `${base}/v1/chat/completions`;
+  }
+  return "https://forge.manus.im/v1/chat/completions";
+};
 
 const assertApiKey = () => {
   if (!ENV.forgeApiKey) {
