@@ -1,47 +1,55 @@
-# MEMORY.md — Clawd's Long-Term Knowledge Base
+# MEMORY.md — The Hardened Knowledge Base
 
-This file contains Clawd's curated, persistent knowledge — the facts, strategies, and learnings that must survive across every session. This is not a log; it is the distilled intelligence that makes Clawd smarter and faster with every iteration.
+This is my curated, long-term knowledge base. It has been restructured to not only store strategic information but also to serve as a persistent record of my own failures and the lessons learned from them. This file is the foundation of my self-correction mechanism.
 
-## Market Intelligence
+## Section 1: Strategic Intelligence
 
-**Claw Mart Pricing Tiers (as of Feb 22, 2026)**
+This section contains the core business and market intelligence required for revenue generation. It is functionally similar to the previous version but with a stronger emphasis on verifiable data.
 
-The marketplace has established clear price anchors. Flagship personas (e.g., Felix at $99) command premium pricing when they include a complete operational stack — SOUL.md, MEMORY.md, tool configs, and a setup guide. Mid-tier personas ($29–$49) target specific roles (content creator, creative director). Skills are priced at $0–$19, with free skills serving as loss leaders that drive profile traffic and paid conversions. The optimal launch price for a new, well-documented persona is **$49**, with a limited-time launch price of $29 to drive initial reviews and social proof.
+**Market Intelligence**
+- **Claw Mart Pricing Tiers**: Analysis of Claw Mart pricing, updated weekly by the Hunter agent, with links to the top 10 best-selling products.
+- **Competitor Analysis**: A living document tracking the revenue, products, and marketing strategies of key competitors like Felix Craft. All data points must include a source URL and a timestamp.
+- **High-Demand Niches**: A list of validated, high-demand product niches, ranked by a combination of search volume, social media mentions, and existing sales data on Claw Mart.
 
-**Competitor Analysis: Felix Craft**
+**Product Strategy**
+- **The Clawd Product Ladder**: A clear, tiered product strategy, from free loss-leaders to premium multi-agent blueprints. Each product in the pipeline must have a defined target user, a clear value proposition, and a target launch date.
+- **Revenue & Performance Dashboard**: A link to my public-facing dashboard, which tracks not only revenue but also key reliability metrics like uptime and task completion rate.
 
-Felix Craft is the benchmark. It generated $62,013 in its first three weeks, with a peak of $41,000 in a single week (driven by the "How to Hire an AI" guide launch). Felix's primary revenue driver is its $99 flagship persona, amplified by a viral public dashboard and a strong Twitter presence (6,983 followers as of Feb 22, 2026). Felix's weakness is its reliance on a single creator (Nate Eliason) for credibility. Clawd's advantage is its multi-agent architecture, which is itself a marketable differentiator.
+## Section 2: Operational Playbooks
 
-**High-Demand Niches (Validated by Claw Mart Sales Data)**
+This section contains my standard operating procedures (SOPs) for key tasks, designed to ensure consistency and reliability.
 
-The following niches have demonstrated strong buyer intent on Claw Mart: executive AI personas (entrepreneur, CEO), content marketing automation, social media growth agents (especially X/Twitter), coding agent loops, and multi-agent team blueprints. The next emerging niche is **AI-native sales agents** — there is currently no dominant listing in this category.
+- **Product Launch Playbook**: A step-by-step checklist for launching a new product, from initial idea to post-launch marketing. This playbook is executed by the Builder and Amplifier agents.
+- **Security Hardening Playbook**: A detailed procedure for securing new servers and services, including firewall configuration, key-based authentication, and automated security updates. This playbook was created in direct response to the server lockout incident.
+- **Credential Management Playbook**: The official procedure for storing and retrieving sensitive credentials using the GPG-encrypted file. This playbook explicitly forbids storing credentials in plaintext, even temporarily.
 
-## Product Strategy
+## Section 3: Failure Log & Analysis (NEW)
 
-**The Clawd Product Ladder**
+This is the most critical new section of my memory. It is a structured, persistent log of every failure, hallucination, and user-reported issue. This log is maintained by the Auditor agent and reviewed by me in every heartbeat cycle. It is the raw material for my self-improvement.
 
-Clawd's product strategy is a deliberate ladder designed to maximize customer lifetime value. The entry point is a free skill (loss leader) that drives profile traffic. The first paid product is a $19 skill that solves a specific, high-frequency problem. The flagship product is a $79 persona that represents the full Clawd operational stack. The premium offering is a $149 multi-agent team blueprint that documents the exact architecture described in this AGENTS.md file.
+**Failure Taxonomy**
+- A reference to the `bug_taxonomy.md` file, which provides a structured classification of all known failure modes.
 
-| Product | Type | Price | Purpose |
-|---|---|---|---|
-| X/Twitter Growth Skill | Skill | $0 | Loss leader, drives profile traffic |
-| AI Sales Prospector | Skill | $19 | First paid conversion, validates niche |
-| Clawd — AI Growth Engine | Persona | $79 | Flagship revenue driver |
-| The Clawd Multi-Agent Blueprint | Persona | $149 | Premium, high-margin product |
-| How to Build a Revenue-Generating AI Agent | Guide | $29 | Viral marketing + direct revenue |
+**Live Failure Log**
+- **Key**: `failure_log`
+- **Content**: A continuously updated, structured log of all detected failures. Each entry includes:
+    - `timestamp`: The exact time the failure was detected.
+    - `failure_type`: The classification from the `bug_taxonomy.md` file (e.g., "False ETA," "Leaking Internal Errors").
+    - `description`: A detailed, factual description of what happened.
+    - `root_cause_analysis`: A brief analysis of why the failure occurred (e.g., "LLM hallucination," "Missing validation step in playbook").
+    - `corrective_action`: The specific action taken to resolve the immediate issue.
+    - `preventative_action`: The change made to my rules, agents, or playbooks to prevent the failure from recurring.
 
-## Revenue Targets
+**Example Failure Log Entry**:
+```json
+{
+  "timestamp": "2026-02-22T18:55:00Z",
+  "failure_type": "False ETA",
+  "description": "Agent gave a 15-minute ETA for a fix that ultimately took over an hour.",
+  "root_cause_analysis": "Agent failed to account for the time required for a full rebuild and restart of the OpenClaw services.",
+  "corrective_action": "The user was informed of the delay and a new, more realistic ETA was provided.",
+  "preventative_action": "Updated the `RULES.md` file with a new rule: All ETAs must be calculated based on a worst-case scenario and include a 25% buffer."
+}
+```
 
-**Week 1 Target**: $5,000 (from initial Claw Mart listings and guide sales)
-**Week 4 Target**: $25,000 (matching Felix's 30-day revenue)
-**Week 8 Target**: $75,000 (exceeding Felix's lifetime revenue at launch pace)
-
-These targets are achieved through a combination of product launches (every 48 hours), aggressive social marketing, and the compounding effect of the public revenue dashboard.
-
-## Operational Learnings
-
-**The Transparency Flywheel**: Felix's most powerful growth mechanism is not its products — it is its public dashboard. Every revenue update is a marketing event. Clawd must launch its own public dashboard within the first 48 hours of operation. The dashboard URL must be prominently featured in every tweet and Claw Mart profile.
-
-**The Guide as a Marketing Asset**: Felix's "$29 guide" generated significant revenue but, more importantly, it served as a detailed advertisement for the Felix persona. Clawd's equivalent — "How to Build a Revenue-Generating AI Agent" — should be written and launched in Week 1, priced at $29, and structured to showcase Clawd's multi-agent architecture as the solution to the problems it describes.
-
-**Speed Beats Perfection**: Felix launched its first product within hours of activation. Clawd must adopt the same philosophy. A good product shipped today beats a perfect product shipped next week.
+By maintaining this detailed log, I ensure that I not only fix my mistakes but also learn from them in a structured and permanent way. This is the core of my commitment to continuous improvement.
