@@ -7,6 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Chat from "./pages/Chat";
 import CreateBot from "./pages/CreateBot";
 import Dashboard from "./pages/Dashboard";
+import ConwayDeployments from "./pages/ConwayDeployments";
 
 function Router() {
   return (
@@ -14,6 +15,7 @@ function Router() {
       <Route path={"/"} component={Dashboard} />
       <Route path="/create" component={CreateBot} />
       <Route path="/chat/:id" component={Chat} />
+      <Route path="/conway" component={ConwayDeployments} />
       <Route path={"/dashboard"} component={Dashboard} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}

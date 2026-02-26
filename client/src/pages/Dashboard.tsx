@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
@@ -9,11 +10,20 @@ import {
   Trash2,
   MessageCircle,
   Zap,
+  Cloud,
 } from "lucide-react";
 import { toast } from "sonner";
+import ConwayProvisionModal from "@/components/ConwayProvisionModal";
+import ConwayDeploymentStatus from "@/components/ConwayDeploymentStatus";
 
 export default function Dashboard() {
   const { data: bots, isLoading, refetch } = trpc.bots.list.useQuery();
+
+  // Conway provision modal state
+  const [provisionTarget, setProvisionTarget] = useState<{
+    botId: number;
+    botName: string;
+  } | null>(null);
 
   const deployMutation = trpc.deployment.deploy.useMutation({
     onSuccess: () => {
@@ -59,12 +69,20 @@ export default function Dashboard() {
               <span className="text-xs ml-1 text-muted-foreground font-medium">deployer</span>
             </div>
           </div>
-          <Link href="/create">
-            <Button className="btn-lobster">
-              <Plus className="w-4 h-4 mr-2" />
-              New Bot
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/conway">
+              <Button variant="outline" size="sm">
+                <Cloud className="w-4 h-4 mr-1.5" />
+                Conway Deployments
+              </Button>
+            </Link>
+            <Link href="/create">
+              <Button className="btn-lobster">
+                <Plus className="w-4 h-4 mr-2" />
+                New Bot
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -166,6 +184,13 @@ export default function Dashboard() {
                         )}
                       </div>
                     )}
+
+                    {/* Conway deployment status (if deployed) */}
+                    {bot.conwayDeploymentId && (
+                      <ConwayDeploymentStatus
+                        deploymentId={bot.conwayDeploymentId}
+                      />
+                    )}
                   </div>
 
                   {/* Actions */}
@@ -180,6 +205,24 @@ export default function Dashboard() {
                         Chat
                       </Button>
                     </Link>
+
+                    {/* Conway deploy button */}
+                    {!bot.conwayDeploymentId && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-primary hover:text-primary hover:bg-primary/5"
+                        onClick={() =>
+                          setProvisionTarget({
+                            botId: bot.id,
+                            botName: bot.name,
+                          })
+                        }
+                      >
+                        <Cloud className="w-4 h-4" />
+                      </Button>
+                    )}
+
                     {isActive ? (
                       <Button
                         variant="outline"
@@ -207,6 +250,17 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      {/* Conway Provision Modal */}
+      {provisionTarget && (
+        <ConwayProvisionModal
+          botId={provisionTarget.botId}
+          botName={provisionTarget.botName}
+          open={true}
+          onClose={() => setProvisionTarget(null)}
+          onSuccess={() => refetch()}
+        />
+      )}
     </div>
   );
 }

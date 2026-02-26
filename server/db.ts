@@ -1,7 +1,7 @@
 import { eq, desc, asc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
-import { InsertUser, users, bots, InsertBot, processLogs, InsertProcessLog, messages, InsertChatMessage } from "../drizzle/schema";
+import { InsertUser, users, bots, InsertBot, processLogs, InsertProcessLog, messages, InsertChatMessage, conwayDeployments, InsertConwayDeployment } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: any = null;
@@ -138,7 +138,9 @@ export async function deleteBot(botId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  // Delete associated messages first
+  // Delete associated Conway deployments first
+  await db.delete(conwayDeployments).where(eq(conwayDeployments.botId, botId));
+  // Delete associated messages
   await db.delete(messages).where(eq(messages.botId, botId));
   // Delete associated logs
   await db.delete(processLogs).where(eq(processLogs.botId, botId));
@@ -194,4 +196,38 @@ export async function getProcessLogs(botId: number, limit: number = 100) {
     .where(eq(processLogs.botId, botId))
     .orderBy(processLogs.timestamp)
     .limit(limit);
+}
+
+// Conway deployment queries
+export async function getConwayDeploymentById(deploymentId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db
+    .select()
+    .from(conwayDeployments)
+    .where(eq(conwayDeployments.id, deploymentId))
+    .limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function getConwayDeploymentsByBotId(botId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  return await db
+    .select()
+    .from(conwayDeployments)
+    .where(eq(conwayDeployments.botId, botId))
+    .orderBy(desc(conwayDeployments.createdAt));
+}
+
+export async function getAllConwayDeployments() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  return await db
+    .select()
+    .from(conwayDeployments)
+    .orderBy(desc(conwayDeployments.createdAt));
 }

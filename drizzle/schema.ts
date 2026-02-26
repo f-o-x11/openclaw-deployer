@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean, serial } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean, serial, json } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -39,6 +39,9 @@ export const bots = mysqlTable("bots", {
   status: mysqlEnum("status", ["stopped", "starting", "running", "crashed", "stopping"]).default("stopped").notNull(),
   configPath: varchar("configPath", { length: 512 }),
   
+  // Conway VM reference (links to conwayDeployments table)
+  conwayDeploymentId: int("conwayDeploymentId"),
+  
   // Messaging channels
   whatsappEnabled: boolean("whatsappEnabled").default(false),
   whatsappQrCode: text("whatsappQrCode"),
@@ -58,6 +61,76 @@ export const bots = mysqlTable("bots", {
 
 export type Bot = typeof bots.$inferSelect;
 export type InsertBot = typeof bots.$inferInsert;
+
+/**
+ * Conway VM deployment records — tracks the full lifecycle of a Conway Cloud
+ * sandbox provisioned for an OpenClaw agent.
+ *
+ * Each row represents one sandbox. The provisioning pipeline moves through:
+ *   pending → provisioning → initializing → configuring → launching → running
+ * Failures at any step set the status to "failed".
+ */
+export const conwayDeployments = mysqlTable("conway_deployments", {
+  id: serial("id").primaryKey(),
+  botId: int("botId").notNull(),
+
+  // Conway sandbox identity
+  sandboxId: varchar("sandboxId", { length: 255 }),       // Conway API sandbox ID
+  sandboxName: varchar("sandboxName", { length: 255 }),    // Human-readable name
+  region: varchar("region", { length: 64 }).default("us-east").notNull(),
+
+  // Resource allocation
+  vcpu: int("vcpu").default(1).notNull(),
+  memoryMb: int("memoryMb").default(1024).notNull(),
+  diskGb: int("diskGb").default(5).notNull(),
+
+  // Provisioning pipeline status
+  status: mysqlEnum("conway_status", [
+    "pending",        // Queued, not yet started
+    "provisioning",   // POST /v1/sandboxes sent
+    "initializing",   // Installing Conway Terminal + cloning OpenClaw
+    "configuring",    // Uploading agent config.json
+    "launching",      // Starting the agent process (pm2)
+    "running",        // Agent is live
+    "stopped",        // Manually stopped
+    "failed",         // Error at any step
+    "terminated",     // Sandbox deleted
+  ]).default("pending").notNull(),
+
+  // Pipeline step tracking
+  currentStep: int("currentStep").default(0).notNull(),        // 0-4 maps to the 4 provisioning steps
+  totalSteps: int("totalSteps").default(4).notNull(),
+  stepDescription: varchar("stepDescription", { length: 512 }),
+
+  // Networking
+  publicUrl: varchar("publicUrl", { length: 512 }),            // Exposed gateway URL
+  publicPort: int("publicPort"),
+  ipAddress: varchar("ipAddress", { length: 64 }),
+
+  // Agent configuration snapshot (JSON blob of the config injected into the VM)
+  agentConfig: text("agentConfig"),
+
+  // Buyer / onboarding metadata
+  buyerEmail: varchar("buyerEmail", { length: 320 }),
+  buyerName: varchar("buyerName", { length: 255 }),
+  onboardingFormData: text("onboardingFormData"),               // Full form submission JSON
+
+  // Error tracking
+  lastError: text("lastError"),
+  retryCount: int("retryCount").default(0).notNull(),
+
+  // Timestamps
+  provisionedAt: timestamp("provisionedAt"),
+  initializedAt: timestamp("initializedAt"),
+  launchedAt: timestamp("launchedAt"),
+  stoppedAt: timestamp("stoppedAt"),
+  terminatedAt: timestamp("terminatedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+
+export type ConwayDeployment = typeof conwayDeployments.$inferSelect;
+export type InsertConwayDeployment = typeof conwayDeployments.$inferInsert;
 
 /**
  * Chat messages for bot conversations
